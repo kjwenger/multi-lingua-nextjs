@@ -116,7 +116,8 @@ export const openApiSpec = {
       post: {
         tags: ['Translations Database'],
         summary: 'Add a new translation entry',
-        description: 'Saves a new translation entry to the database',
+        description: 'Saves a new translation entry to the database. Authentication required.',
+        security: [{ bearerAuth: [] }],
         requestBody: {
           required: true,
           content: {
@@ -142,6 +143,7 @@ export const openApiSpec = {
               },
             },
           },
+          '401': { description: 'Not authenticated' },
           '500': {
             description: 'Failed to add translation',
           },
@@ -151,6 +153,7 @@ export const openApiSpec = {
         tags: ['Translations Database'],
         summary: 'Update an existing translation',
         description: 'Updates a translation entry in the database',
+        security: [{ bearerAuth: [] }],
         requestBody: {
           required: true,
           content: {
@@ -189,6 +192,7 @@ export const openApiSpec = {
               },
             },
           },
+          '401': { description: 'Not authenticated' },
           '500': {
             description: 'Failed to update translation',
           },
@@ -1105,6 +1109,7 @@ export const openApiSpec = {
           french_proposals: { type: 'string' },
           italian_proposals: { type: 'string' },
           spanish_proposals: { type: 'string' },
+          category_id: { type: 'integer', nullable: true, description: 'Category ID to assign (null for uncategorized)' },
         },
         required: ['english'],
       },

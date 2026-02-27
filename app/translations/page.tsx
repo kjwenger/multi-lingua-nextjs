@@ -308,6 +308,9 @@ function TranslationsContent() {
   const addNewRow = async () => {
     try {
       logger.info('Adding new translation row');
+      const activeCategoryId = activeCategory && activeCategory !== '__uncategorized__'
+        ? (categories.find(c => c.name === activeCategory)?.id ?? null)
+        : null;
       const response = await fetch('/api/translations', {
         method: 'POST',
         credentials: 'include',
@@ -325,6 +328,7 @@ function TranslationsContent() {
           french_proposals: '[]',
           italian_proposals: '[]',
           spanish_proposals: '[]',
+          category_id: activeCategoryId,
         }),
       });
       

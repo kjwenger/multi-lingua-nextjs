@@ -239,12 +239,13 @@ export class Database {
     italian_proposals?: string;
     spanish_proposals?: string;
     user_id?: number | null;
+    category_id?: number | null;
   }): Promise<number> {
     return new Promise((resolve, reject) => {
       const query = `
         INSERT INTO translations
-        (english, german, french, italian, spanish, english_proposals, german_proposals, french_proposals, italian_proposals, spanish_proposals, user_id)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (english, german, french, italian, spanish, english_proposals, german_proposals, french_proposals, italian_proposals, spanish_proposals, user_id, category_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
 
       this.db.run(query, [
@@ -258,7 +259,8 @@ export class Database {
         data.french_proposals || '',
         data.italian_proposals || '',
         data.spanish_proposals || '',
-        data.user_id ?? null
+        data.user_id ?? null,
+        data.category_id ?? null
       ], function(this: sqlite3.RunResult, err: Error | null) {
         if (err) {
           reject(err);
