@@ -1,0 +1,53 @@
+services:
+  # LibreTranslate service
+  libretranslate:
+    image: libretranslate/libretranslate:latest
+    container_name: multi-lingua-libretranslate-test
+    ports:
+      - "5432:5000"
+    environment:
+      - LT_HOST=0.0.0.0
+      - LT_PORT=5000
+    volumes:
+      - lt-local:/home/libretranslate/.local
+    restart: unless-stopped
+    networks:
+      - multi-lingua-network
+
+  # Multi-Lingua app
+  multi-lingua:
+    build:
+      context: .
+      args:
+        VERSION: ${VERSION:-0.4.0}
+    image: multi-lingua:test
+    container_name: multi-lingua-app-test
+    ports:
+      - "3456:3456"
+    environment:
+      - NODE_ENV=production
+      - PORT=3456
+      - HOSTNAME=0.0.0.0
+      - DOCKER_COMPOSE=true
+      - LIBRETRANSLATE_URL=http://libretranslate:5000
+      - DEV_MODE=true
+      - JWT_SECRET=docker-test-secret-change-in-production
+      - JWT_EXPIRY=24h
+      - APP_URL=http://localhost:3456
+    volumes:
+      - ml-data:/app/data
+    depends_on:
+      - libretranslate
+    restart: unless-stopped
+    networks:
+      - multi-lingua-network
+
+networks:
+  multi-lingua-network:
+    driver: bridge
+
+volumes:
+  lt-local:
+    external: true
+  ml-data:
+    external: true

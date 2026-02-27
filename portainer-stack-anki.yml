@@ -1,0 +1,24 @@
+# Anki Sync Server for Synology NAS (Portainer Stack)
+# Image: https://hub.docker.com/r/jeankhawand/anki-sync-server
+
+services:
+  anki-sync-server:
+    image: jeankhawand/anki-sync-server:25.07
+    container_name: anki-sync-server
+    ports:
+      # Exposes the sync server on port 27701 of your NAS.
+      # Internal port is 8080 (hardcoded by the image).
+      - "27701:8080"
+    volumes:
+      # Persist Anki sync data between container restarts.
+      # IMPORTANT: Replace the path on the left with the real path on your Synology NAS.
+      - /volume1/docker/anki-server:/anki_data
+    environment:
+      # User accounts (format: username:password).
+      # IMPORTANT: Change this to a secure and private username and password.
+      - SYNC_USER1=your_username:your_very_strong_password
+    restart: unless-stopped
+
+networks:
+  default:
+    name: anki-network

@@ -1,0 +1,14 @@
+services:
+  libretranslate:
+    container_name: LibreTranslate
+    image: libretranslate/libretranslate
+    healthcheck:
+      test: ['CMD-SHELL', './venv/bin/python scripts/healthcheck.py']
+    mem_limit: 4g
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - 7821:5000
+    environment:
+      LT_LOAD_ONLY: de,en,it,es,fr
+    restart: on-failure:5

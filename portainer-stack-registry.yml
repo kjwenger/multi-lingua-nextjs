@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  registry:
+    image: registry:2
+    container_name: docker-registry
+    ports:
+      - "5050:5000"
+    environment:
+      - REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY=/var/lib/registry
+    volumes:
+      - registry-data:/var/lib/registry
+    restart: unless-stopped
+    networks:
+      - registry-network
+
+networks:
+  registry-network:
+    driver: bridge
+
+volumes:
+  registry-data:
+    driver: local

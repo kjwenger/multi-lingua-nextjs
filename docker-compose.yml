@@ -1,0 +1,58 @@
+services:
+  # LibreTranslate service
+  libretranslate:
+    image: libretranslate/libretranslate:latest
+    container_name: libretranslate
+    ports:
+      - "5432:5000"
+    environment:
+      - LT_HOST=0.0.0.0
+      - LT_PORT=5000
+    volumes:
+      # Persist LibreTranslate data and models between container restarts
+      - lt-local:/home/libretranslate/.local
+    restart: unless-stopped
+    networks:
+      - multi-lingua-network
+
+  # Multi-Lingua app
+  # Use ./docker.sh to build with version from package.json, or set VERSION env var
+  multi-lingua:
+    build:
+      context: .
+      args:
+        VERSION: ${VERSION:-dev}
+    image: registry.gertrun.synology.me/multi-lingua:${VERSION:-dev}
+    container_name: multi-lingua
+    ports:
+      - "3456:3456"
+    environment:
+      - NODE_ENV=production
+      - PORT=3456
+      - HOSTNAME=0.0.0.0
+      - DOCKER_COMPOSE=true
+      - LIBRETRANSLATE_URL=http://libretranslate:5000
+      - DEV_MODE=true
+      - JWT_SECRET=${JWT_SECRET:-change-this-secret-in-production-please}
+      - JWT_EXPIRY=24h
+      - APP_URL=${APP_URL:-http://localhost:3456}
+    volumes:
+      # Persist the SQLite database
+      - ml-data:/app/data
+    depends_on:
+      - libretranslate
+    restart: unless-stopped
+    networks:
+      - multi-lingua-network
+
+networks:
+  multi-lingua-network:
+    driver: bridge
+
+volumes:
+  # LibreTranslate persistent storage - use existing external volume
+  lt-local:
+    external: true
+  # Multi-Lingua SQLite database storage - use existing external volume
+  ml-data:
+    external: true
