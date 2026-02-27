@@ -39,6 +39,14 @@ export interface Translation {
   spanish_proposals: string;
   created_at: string;
   updated_at: string;
+  category_id: number | null;
+}
+
+export interface Category {
+  id: number;
+  name: string;
+  created_at: string;
+  translation_count: number;
 }
 
 export class Database {
@@ -79,6 +87,8 @@ export class Database {
       this.addGermanColumn();
       this.addEnglishProposalsColumn();
       this.addUserIdColumn();
+      this.initializeCategories();
+      this.addCategoryIdColumn();
     });
   }
 
@@ -89,6 +99,23 @@ export class Database {
         console.error('Error adding user_id column:', err);
       }
     });
+  }
+
+  private initializeCategories() {
+    this.db.run(`
+      CREATE TABLE IF NOT EXISTS categories (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL UNIQUE,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `, (err: Error | null) => { if (err) console.error('Error creating categories table:', err); });
+  }
+
+  private addCategoryIdColumn() {
+    this.db.run(
+      'ALTER TABLE translations ADD COLUMN category_id INTEGER REFERENCES categories(id)',
+      (err: Error | null) => { if (err && !err.message.includes('duplicate column')) console.error(err); }
+    );
   }
 
   private addGermanColumn() {
@@ -112,14 +139,23 @@ export class Database {
     });
   }
 
-  public getAllTranslations(userId?: number): Promise<Translation[]> {
+  public getAllTranslations(userId?: number, categoryParam?: string): Promise<Translation[]> {
     return new Promise((resolve, reject) => {
       // If userId provided, get user's own translations + shared translations (user_id IS NULL)
       // If no userId, get only shared translations
-      const query = userId
-        ? 'SELECT * FROM translations WHERE user_id = ? OR user_id IS NULL ORDER BY english ASC'
-        : 'SELECT * FROM translations WHERE user_id IS NULL ORDER BY english ASC';
-      const params = userId ? [userId] : [];
+      let baseCondition = userId
+        ? '(user_id = ? OR user_id IS NULL)'
+        : 'user_id IS NULL';
+      const params: any[] = userId ? [userId] : [];
+
+      if (categoryParam === '__uncategorized__') {
+        baseCondition += ' AND category_id IS NULL';
+      } else if (categoryParam) {
+        baseCondition += ' AND category_id = (SELECT id FROM categories WHERE name = ?)';
+        params.push(categoryParam);
+      }
+
+      const query = `SELECT * FROM translations WHERE ${baseCondition} ORDER BY english ASC`;
 
       this.db.all(query, params, (err: Error | null, rows: Translation[]) => {
         if (err) {
@@ -127,6 +163,54 @@ export class Database {
         } else {
           resolve(rows || []);
         }
+      });
+    });
+  }
+
+  public getAllCategories(): Promise<Category[]> {
+    return new Promise((resolve, reject) => {
+      const query = `
+        SELECT c.*, COUNT(t.id) AS translation_count
+        FROM categories c
+        LEFT JOIN translations t ON t.category_id = c.id
+        GROUP BY c.id
+        ORDER BY c.name ASC
+      `;
+      this.db.all(query, [], (err: Error | null, rows: Category[]) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(rows || []);
+        }
+      });
+    });
+  }
+
+  public addCategory(name: string): Promise<number> {
+    return new Promise((resolve, reject) => {
+      this.db.run('INSERT INTO categories (name) VALUES (?)', [name], function(this: sqlite3.RunResult, err: Error | null) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(this.lastID as number);
+        }
+      });
+    });
+  }
+
+  public deleteCategory(id: number): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      this.db.serialize(() => {
+        this.db.run('UPDATE translations SET category_id = NULL WHERE category_id = ?', [id], (err: Error | null) => {
+          if (err) { reject(err); return; }
+        });
+        this.db.run('DELETE FROM categories WHERE id = ?', [id], function(this: sqlite3.RunResult, err: Error | null) {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(this.changes > 0);
+          }
+        });
       });
     });
   }

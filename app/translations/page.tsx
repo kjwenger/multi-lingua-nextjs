@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { SettingsButton } from '@/components/SettingsButton';
 import { ApiDocsButton } from '@/components/ApiDocsButton';
@@ -29,6 +29,13 @@ interface Translation {
   french_proposals: string;
   italian_proposals: string;
   spanish_proposals: string;
+  category_id: number | null;
+}
+
+interface Category {
+  id: number;
+  name: string;
+  created_at: string;
 }
 
 interface TranslationProposals {
@@ -45,8 +52,10 @@ interface TranslationResponse {
   spanish?: TranslationProposals;
 }
 
-export default function TranslationsPage() {
+function TranslationsContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const activeCategory = searchParams.get('category');
   const { user, loading: authLoading } = useAuth();
   const [translations, setTranslations] = useState<Translation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,6 +65,8 @@ export default function TranslationsPage() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [isMobile, setIsMobile] = useState(false);
   const [selectedTranslationId, setSelectedTranslationId] = useState<number | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [openCategoryDropdownId, setOpenCategoryDropdownId] = useState<number | null>(null);
 
   // Redirect to landing if not authenticated
   useEffect(() => {
@@ -83,17 +94,34 @@ export default function TranslationsPage() {
     }
   }, [isMobile]);
 
+  // Close category dropdown on outside click
+  useEffect(() => {
+    if (openCategoryDropdownId === null) return;
+    const handler = () => setOpenCategoryDropdownId(null);
+    document.addEventListener('click', handler);
+    return () => document.removeEventListener('click', handler);
+  }, [openCategoryDropdownId]);
+
   useEffect(() => {
     if (user) {
       fetchTranslations();
+      fetchCategories();
     }
-  }, [user]);
+  }, [user, activeCategory]);
+
+  const fetchCategories = async () => {
+    const res = await fetch('/api/categories', { credentials: 'include' });
+    if (res.ok) setCategories(await res.json());
+  };
 
   const fetchTranslations = async () => {
     try {
       logger.info('Fetching translations from API');
       setError(null);
-      const response = await fetch('/api/translations', {
+      const categoryQuery = activeCategory !== null
+        ? `?category=${encodeURIComponent(activeCategory)}`
+        : '';
+      const response = await fetch(`/api/translations${categoryQuery}`, {
         method: 'GET',
         credentials: 'include',
         headers: {
@@ -352,6 +380,19 @@ export default function TranslationsPage() {
     }
   };
 
+  const handleCategoryChange = async (translationId: number, categoryId: number | null) => {
+    setOpenCategoryDropdownId(null);
+    await fetch('/api/translations', {
+      method: 'PUT',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: translationId, category_id: categoryId }),
+    });
+    setTranslations(prev => prev.map(t =>
+      t.id === translationId ? { ...t, category_id: categoryId } : t
+    ));
+  };
+
   const getProposals = (proposalsJson: string): string[] => {
     try {
       return JSON.parse(proposalsJson || '[]');
@@ -451,6 +492,17 @@ export default function TranslationsPage() {
             )}
           </div>
 
+          {/* Breadcrumb */}
+          {activeCategory !== null && (
+            <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700 text-sm text-gray-600 dark:text-gray-400">
+              <a href="/categories" className="hover:text-blue-600 dark:hover:text-blue-400">← Categories</a>
+              {' / '}
+              <span className="text-gray-900 dark:text-gray-100">
+                {activeCategory === '__uncategorized__' ? 'Uncategorized' : activeCategory}
+              </span>
+            </div>
+          )}
+
           {/* Mobile List View (< 768px) */}
           {isMobile ? (
             <div>
@@ -464,6 +516,8 @@ export default function TranslationsPage() {
                   isShared={translation.user_id === null}
                   canDelete={(translation.user_id != null && translation.user_id == user?.id) || (translation.user_id === null && user?.role === 'admin')}
                   canShare={user?.role === 'admin' || (translation.user_id != null && translation.user_id == user?.id)}
+                  onCategoryChange={(categoryId) => handleCategoryChange(translation.id, categoryId)}
+                  categories={categories}
                 />
               ))}
               {translations.length === 0 && (
@@ -884,6 +938,49 @@ export default function TranslationsPage() {
                     </td>
                     
                     <td className="px-1 py-1 align-top">
+                      {/* Category tag icon + dropdown */}
+                      <div className="relative">
+                        <button
+                          onClick={() => setOpenCategoryDropdownId(prev => prev === translation.id ? null : translation.id)}
+                          className="p-1 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200"
+                          title="Set category"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" />
+                          </svg>
+                        </button>
+                        {openCategoryDropdownId === translation.id && (
+                          <div className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-lg z-50">
+                            <button
+                              className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
+                              onClick={() => handleCategoryChange(translation.id, null)}
+                            >
+                              {translation.category_id === null && (
+                                <svg className="w-3 h-3 text-blue-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                              )}
+                              {translation.category_id !== null && <span className="w-3 flex-shrink-0" />}
+                              Uncategorized
+                            </button>
+                            {categories.map((cat) => (
+                              <button
+                                key={cat.id}
+                                className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
+                                onClick={() => handleCategoryChange(translation.id, cat.id)}
+                              >
+                                {translation.category_id === cat.id && (
+                                  <svg className="w-3 h-3 text-blue-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                  </svg>
+                                )}
+                                {translation.category_id !== cat.id && <span className="w-3 flex-shrink-0" />}
+                                {cat.name}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                       {/* Show delete button only for own translations or admins on shared */}
                       {(translation.user_id != null && translation.user_id == user?.id) || (translation.user_id === null && user?.role === 'admin') ? (
                         <button
@@ -962,5 +1059,20 @@ export default function TranslationsPage() {
         );
       })()}
     </div>
+  );
+}
+
+export default function TranslationsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center transition-colors duration-200">
+        <div className="text-center">
+          <div className="text-xl text-gray-900 dark:text-gray-100 mb-4">Loading...</div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+        </div>
+      </div>
+    }>
+      <TranslationsContent />
+    </Suspense>
   );
 }

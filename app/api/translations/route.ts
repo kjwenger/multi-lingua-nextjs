@@ -9,7 +9,9 @@ export async function GET(request: NextRequest) {
     const user = await authenticateRequest(request);
     const userId = user?.userId;
 
-    const translations = await database.getAllTranslations(userId);
+    const { searchParams } = new URL(request.url);
+    const categoryParam = searchParams.get('category') ?? undefined;
+    const translations = await database.getAllTranslations(userId, categoryParam);
     return NextResponse.json(translations);
   } catch (error) {
     logger.error('Error fetching translations:', error);

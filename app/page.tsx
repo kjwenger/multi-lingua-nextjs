@@ -12,7 +12,7 @@ export default function HomePage() {
     if (!loading) {
       if (user) {
         // User is authenticated, go to translations
-        router.push('/translations');
+        router.push('/categories');
       } else {
         // User is not authenticated, go to landing
         router.push('/landing');
