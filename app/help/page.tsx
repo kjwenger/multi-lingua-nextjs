@@ -20,6 +20,7 @@ export default function HelpPage() {
     // { id: 'setup-oxford', title: 'Oxford Dictionary Setup' },
     { id: 'setup-tatoeba', title: 'Tatoeba Setup' },
     { id: 'usage', title: 'Using the App' },
+    { id: 'categories', title: 'Categories' },
     { id: 'api', title: 'API Reference' },
     { id: 'troubleshooting', title: 'Troubleshooting' },
   ];
@@ -72,6 +73,7 @@ export default function HelpPage() {
           {/* {activeSection === 'setup-oxford' && <OxfordSetup />} */}
           {activeSection === 'setup-tatoeba' && <TatoebaSetup />}
           {activeSection === 'usage' && <Usage />}
+          {activeSection === 'categories' && <CategoriesSection />}
           {activeSection === 'api' && <ApiReference />}
           {activeSection === 'troubleshooting' && <Troubleshooting />}
         </main>
@@ -255,6 +257,7 @@ function Features() {
         <li><strong>Persistent Storage:</strong> All translations saved to SQLite database</li>
         <li><strong>Alphabetical Sorting:</strong> Sort translations by English column</li>
         <li><strong>Bulk Operations:</strong> Add and delete multiple translation entries</li>
+        <li><strong>Category Organisation:</strong> Group translations into named categories and filter the list by category</li>
       </ul>
 
       <h2 className="text-2xl font-semibold mt-8 mb-4">Text-to-Speech</h2>
@@ -2096,6 +2099,15 @@ function Usage() {
         <li>Sort order is maintained until you change it</li>
       </ul>
 
+      <h3 className="text-xl font-semibold mt-6 mb-3">Categories</h3>
+      <ul className="list-disc pl-6 space-y-2 mb-6">
+        <li>After login you land on the <strong>Categories</strong> page — click a row to view only those translations</li>
+        <li>Translations without a category appear under <strong>Uncategorized</strong></li>
+        <li>A breadcrumb at the top of the translations list lets you navigate back to Categories</li>
+        <li>Use the <strong>tag icon</strong> on a translation row to assign or change its category</li>
+        <li>Admins can add categories with the <strong>+</strong> button; the delete button is disabled while a category still has translations assigned</li>
+      </ul>
+
       <h2 className="text-2xl font-semibold mt-8 mb-4">Keyboard Shortcuts</h2>
 
       <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 mb-6">
@@ -2246,6 +2258,61 @@ function Usage() {
   );
 }
 
+function CategoriesSection() {
+  return (
+    <div className="prose dark:prose-invert max-w-none text-gray-800 dark:text-gray-200">
+      <h1 className="text-3xl font-bold mb-6">Categories</h1>
+
+      <p className="text-lg text-gray-600 dark:text-gray-400 mb-6">
+        Categories let you organise your translations into named groups and quickly filter the list to just the entries you care about.
+      </p>
+
+      <h2 className="text-2xl font-semibold mt-8 mb-4">Navigating Categories</h2>
+      <ol className="list-decimal pl-6 space-y-2 mb-6">
+        <li>After logging in you land on the <strong>Categories</strong> page</li>
+        <li>The first row, <strong>Uncategorized</strong>, shows all translations that have not been assigned a category</li>
+        <li>Below it are any categories you (or an admin) have created</li>
+        <li>Click any row to open the <strong>Translations</strong> page filtered to that category</li>
+        <li>A breadcrumb at the top of the translations list lets you navigate back</li>
+      </ol>
+
+      <h2 className="text-2xl font-semibold mt-8 mb-4">Assigning a Category to a Translation</h2>
+      <ol className="list-decimal pl-6 space-y-2 mb-6">
+        <li>Open the translations list (either via a category or directly)</li>
+        <li>On desktop: click the <strong>tag icon</strong> in the row to open a dropdown</li>
+        <li>On mobile: tap the tag icon on the translation card</li>
+        <li>Select a category or choose <strong>Uncategorized</strong> to remove the assignment</li>
+        <li>The change is saved immediately — no extra button needed</li>
+      </ol>
+
+      <h2 className="text-2xl font-semibold mt-8 mb-4">Managing Categories (Admin)</h2>
+
+      <h3 className="text-xl font-semibold mt-6 mb-3">Adding a Category</h3>
+      <ol className="list-decimal pl-6 space-y-2 mb-6">
+        <li>On the Categories page click the blue <strong>+</strong> button in the toolbar</li>
+        <li>Type the new category name in the inline form that appears</li>
+        <li>Press <kbd>Enter</kbd> or click <strong>Add</strong> to save</li>
+        <li>Press <kbd>Esc</kbd> or click <strong>Cancel</strong> to dismiss without saving</li>
+        <li>Category names must be unique — a duplicate will show an inline error</li>
+      </ol>
+
+      <h3 className="text-xl font-semibold mt-6 mb-3">Deleting a Category</h3>
+      <ul className="list-disc pl-6 space-y-2 mb-6">
+        <li>Click the <strong>trash icon</strong> next to the category name</li>
+        <li>The button is <strong>disabled</strong> while the category still has translations assigned to it — reassign or delete those translations first</li>
+        <li>Deleting a category does not delete its translations; they become uncategorized</li>
+      </ul>
+
+      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mt-6">
+        <h4 className="text-blue-800 dark:text-blue-200 mt-0 mb-2">💡 Tip</h4>
+        <p className="mb-0">
+          Categories are global — they are shared across all users. Any authenticated user can assign a translation to a category; only admins can create or delete categories.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function ApiReference() {
   return (
     <div className="prose dark:prose-invert max-w-none text-gray-800 dark:text-gray-200">
@@ -2345,6 +2412,36 @@ function ApiReference() {
             Get list of configured translation providers and active provider
           </p>
         </div>
+
+        <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs font-mono rounded">GET</span>
+            <code className="text-sm">/api/categories</code>
+          </div>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-0">
+            List all categories with their translation count (open — no auth required)
+          </p>
+        </div>
+
+        <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs font-mono rounded">POST</span>
+            <code className="text-sm">/api/categories</code>
+          </div>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-0">
+            Create a new category — auth required; returns 409 if name already exists
+          </p>
+        </div>
+
+        <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="px-2 py-1 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 text-xs font-mono rounded">DELETE</span>
+            <code className="text-sm">/api/categories?id=&#123;id&#125;</code>
+          </div>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-0">
+            Delete a category by ID — admin only; affected translations become uncategorized
+          </p>
+        </div>
       </div>
 
       <h2 className="text-2xl font-semibold mt-8 mb-4">Example: Translate Text</h2>
@@ -2390,16 +2487,25 @@ Content-Type: application/json
 
       <h2 className="text-2xl font-semibold mt-8 mb-4">Authentication</h2>
       <p className="mb-4">
-        Currently, the MultiLingua API does not require authentication. This may change in future versions 
-        to add API key support for better security and rate limiting.
+        Most write endpoints require a valid session. Log in via <code>POST /api/auth/login</code> +
+        <code>POST /api/auth/verify-login</code> — a JWT is set as an HttpOnly cookie automatically.
+        Include <code>credentials: &apos;include&apos;</code> in your fetch calls so the cookie is sent.
+        Admin-only endpoints (e.g. deleting categories, managing users) additionally check the <code>admin</code> role.
       </p>
+      <ul className="list-disc pl-6 space-y-1 mb-6">
+        <li><code>401 Unauthorized</code> — no valid session cookie</li>
+        <li><code>403 Forbidden</code> — authenticated but not admin</li>
+      </ul>
 
       <h2 className="text-2xl font-semibold mt-8 mb-4">Error Handling</h2>
       <p className="mb-4">All endpoints return appropriate HTTP status codes:</p>
       <ul className="list-disc pl-6 space-y-1 mb-6">
-        <li><code>200</code> - Success</li>
+        <li><code>200</code> / <code>201</code> - Success / Created</li>
         <li><code>400</code> - Bad Request (invalid parameters)</li>
+        <li><code>401</code> - Unauthorized (login required)</li>
+        <li><code>403</code> - Forbidden (admin role required)</li>
         <li><code>404</code> - Not Found</li>
+        <li><code>409</code> - Conflict (e.g. duplicate category name)</li>
         <li><code>500</code> - Internal Server Error</li>
       </ul>
 

@@ -84,7 +84,16 @@ export const openApiSpec = {
       get: {
         tags: ['Translations Database'],
         summary: 'Get all saved translations',
-        description: 'Retrieves all translation entries from the database',
+        description: 'Retrieves all translation entries from the database, optionally filtered by category',
+        parameters: [
+          {
+            name: 'category',
+            in: 'query',
+            required: false,
+            schema: { type: 'string' },
+            description: 'Filter by category name, or "__uncategorized__" for translations with no category assigned',
+          },
+        ],
         responses: {
           '200': {
             description: 'List of translations',
@@ -264,6 +273,91 @@ export const openApiSpec = {
           '403': { description: 'Admin access required' },
           '404': { description: 'Translation not found' },
           '500': { description: 'Failed to toggle share status' },
+        },
+      },
+    },
+    '/api/categories': {
+      get: {
+        tags: ['Categories'],
+        summary: 'Get all categories',
+        description: 'Retrieves all categories with their translation count (open endpoint, no authentication required)',
+        responses: {
+          '200': {
+            description: 'List of categories',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'array',
+                  items: { $ref: '#/components/schemas/Category' },
+                },
+              },
+            },
+          },
+          '500': { description: 'Failed to fetch categories' },
+        },
+      },
+      post: {
+        tags: ['Categories'],
+        summary: 'Create a new category',
+        description: 'Creates a new category. Authentication required.',
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  name: { type: 'string', description: 'Category name (must be unique)', example: 'Greetings' },
+                },
+                required: ['name'],
+              },
+            },
+          },
+        },
+        responses: {
+          '201': {
+            description: 'Category created',
+            content: {
+              'application/json': {
+                schema: { type: 'object', properties: { id: { type: 'integer' } } },
+              },
+            },
+          },
+          '400': { description: 'Category name is required' },
+          '401': { description: 'Not authenticated' },
+          '409': { description: 'Category already exists' },
+          '500': { description: 'Failed to create category' },
+        },
+      },
+      delete: {
+        tags: ['Categories'],
+        summary: 'Delete a category',
+        description: 'Deletes a category by ID. Translations in that category become uncategorized. Admin only.',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'id',
+            in: 'query',
+            required: true,
+            schema: { type: 'integer' },
+            description: 'Category ID to delete',
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Category deleted',
+            content: {
+              'application/json': {
+                schema: { type: 'object', properties: { success: { type: 'boolean' } } },
+              },
+            },
+          },
+          '400': { description: 'ID is required' },
+          '401': { description: 'Not authenticated' },
+          '403': { description: 'Admin access required' },
+          '404': { description: 'Category not found' },
+          '500': { description: 'Failed to delete category' },
         },
       },
     },
@@ -995,6 +1089,7 @@ export const openApiSpec = {
           spanish_proposals: { type: 'string', description: 'JSON array of alternatives' },
           created_at: { type: 'string', format: 'date-time' },
           updated_at: { type: 'string', format: 'date-time' },
+          category_id: { type: 'integer', nullable: true, description: 'Category ID (null if uncategorized)' },
         },
       },
       TranslationInput: {
@@ -1012,6 +1107,15 @@ export const openApiSpec = {
           spanish_proposals: { type: 'string' },
         },
         required: ['english'],
+      },
+      Category: {
+        type: 'object',
+        properties: {
+          id: { type: 'integer' },
+          name: { type: 'string' },
+          created_at: { type: 'string', format: 'date-time' },
+          translation_count: { type: 'integer', description: 'Number of translations assigned to this category' },
+        },
       },
       ProviderConfig: {
         type: 'object',
@@ -1068,6 +1172,10 @@ export const openApiSpec = {
     {
       name: 'Authentication',
       description: 'User authentication and session management',
+    },
+    {
+      name: 'Categories',
+      description: 'Category management for organising translations',
     },
     {
       name: 'Admin',
