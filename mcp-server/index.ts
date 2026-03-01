@@ -7,7 +7,9 @@ import { MultiLinguaClient } from './client';
 import { registerTools } from './tools';
 import { registerResources } from './resources';
 
-const VERSION = '0.1.0';
+// package.json is copied into dist/ by the build script so this resolves at runtime.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const VERSION: string = (require('./package.json') as { version: string }).version;
 
 // One shared client instance — loaded from env / ~/.multi-lingua-mcp.json once at startup.
 const globalClient = new MultiLinguaClient();
