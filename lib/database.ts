@@ -283,6 +283,7 @@ export class Database {
     italian_proposals?: string;
     spanish_proposals?: string;
     user_id?: number | null;
+    category_id?: number | null;
   }, userId?: number): Promise<boolean> {
     return new Promise((resolve, reject) => {
       const fields: string[] = [];

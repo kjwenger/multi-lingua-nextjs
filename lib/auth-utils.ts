@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+import jwt, { type SignOptions } from 'jsonwebtoken';
 import crypto from 'crypto';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
@@ -15,7 +15,7 @@ export function generateAuthCode(): string {
 }
 
 export function generateToken(payload: JWTPayload, expiresIn?: string): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: expiresIn || JWT_EXPIRY });
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: (expiresIn || JWT_EXPIRY) as SignOptions['expiresIn'] });
 }
 
 export function verifyToken(token: string): JWTPayload | null {
@@ -35,14 +35,14 @@ export function validateEmail(email: string): boolean {
   return emailRegex.test(email);
 }
 
-export function getClientIp(headers: Headers): string | null {
+export function getClientIp(headers: Headers): string | undefined {
   const forwarded = headers.get('x-forwarded-for');
   if (forwarded) {
     return forwarded.split(',')[0].trim();
   }
-  return headers.get('x-real-ip') || null;
+  return headers.get('x-real-ip') ?? undefined;
 }
 
-export function getDeviceInfo(headers: Headers): string | null {
-  return headers.get('user-agent') || null;
+export function getDeviceInfo(headers: Headers): string | undefined {
+  return headers.get('user-agent') ?? undefined;
 }

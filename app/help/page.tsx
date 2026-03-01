@@ -2247,7 +2247,7 @@ function Usage() {
         <ul className="list-disc pl-6 space-y-1 mb-0">
           <li>Check the <Link href="/help" className="text-yellow-700 dark:text-yellow-300 hover:underline">other help sections</Link> for provider setup</li>
           <li>Visit <Link href="/api-docs" className="text-yellow-700 dark:text-yellow-300 hover:underline">API Documentation</Link> for programmatic access</li>
-          <li>See <Link href="/help" onClick={() => setActiveSection('troubleshooting')} className="text-yellow-700 dark:text-yellow-300 hover:underline">Troubleshooting</Link> for common issues</li>
+          <li>See <Link href="/help#troubleshooting" className="text-yellow-700 dark:text-yellow-300 hover:underline">Troubleshooting</Link> for common issues</li>
         </ul>
       </div>
     </div>
