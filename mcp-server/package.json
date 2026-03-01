@@ -1,6 +1,6 @@
 {
   "name": "multi-lingua-mcp",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "MCP server for Multi-Lingua vocabulary management",
   "main": "dist/index.js",
   "bin": {
