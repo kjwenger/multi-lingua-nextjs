@@ -25,6 +25,7 @@ export default function HelpPage() {
     { id: 'mcp-server', title: 'MCP Server' },
     { id: 'api', title: 'API Reference' },
     { id: 'troubleshooting', title: 'Troubleshooting' },
+    { id: 'developer', title: 'For Developers' },
   ];
 
   return (
@@ -80,6 +81,7 @@ export default function HelpPage() {
           {activeSection === 'mcp-server' && <McpServerSection />}
           {activeSection === 'api' && <ApiReference />}
           {activeSection === 'troubleshooting' && <Troubleshooting />}
+          {activeSection === 'developer' && <DeveloperSection />}
         </main>
       </div>
     </div>
@@ -140,15 +142,6 @@ function GettingStarted() {
           <li>Docker Compose v2.0 or later</li>
           <li>2GB RAM minimum (4GB recommended)</li>
           <li>Modern web browser (Chrome, Firefox, Safari, Edge)</li>
-        </ul>
-      </div>
-
-      <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-6">
-        <h3 className="text-lg font-semibold mt-0 mb-2">For Local Development</h3>
-        <ul className="list-disc pl-6 space-y-1 mb-0">
-          <li>Node.js 18.0 or later</li>
-          <li>npm 9.0 or later</li>
-          <li>4GB RAM minimum</li>
         </ul>
       </div>
 
@@ -285,7 +278,6 @@ function Features() {
         <li><strong>Structured Logging:</strong> Color-coded logs in browser and server</li>
         <li><strong>Docker Compose:</strong> One-command deployment</li>
         <li><strong>Environment Configuration:</strong> Flexible .env configuration</li>
-        <li><strong>TypeScript:</strong> Full type safety throughout codebase</li>
       </ul>
 
       <h2 className="text-2xl font-semibold mt-8 mb-4">User Interface</h2>
@@ -2743,127 +2735,73 @@ function McpServerSection() {
 
       <h2 className="text-2xl font-semibold mt-8 mb-4">Architecture</h2>
       <p className="mb-4">
-        The MCP server lives in <code>mcp-server/</code> — a standalone Node.js package that wraps the
-        Multi-Lingua REST API. It does not touch the database directly; it is a thin client of the existing
-        application, meaning it works equally well against a local instance or a remote one on a NAS.
+        The MCP server is a thin client of the Multi-Lingua REST API — it does not touch the database directly.
+        It works equally well against a local Docker instance or a remote one on a NAS.
       </p>
-      <p className="mb-4">Two transport modes are supported:</p>
-      <ul className="list-disc pl-6 space-y-2 mb-6">
-        <li><strong>stdio</strong> (default) — for Claude Desktop on the same machine; Claude spawns the process and communicates over stdin/stdout.</li>
-        <li><strong>HTTP / Streamable HTTP</strong> — for remote or Docker-deployed use; the server listens on port 3457 and accepts MCP connections over HTTP POST to <code>/mcp</code>.</li>
-      </ul>
+      <p className="mb-4">
+        The Docker Compose setup starts the MCP server in HTTP mode alongside the main app. It listens on port
+        3457 and accepts MCP connections over HTTP POST to <code>/mcp</code>.
+      </p>
 
-      <h2 className="text-2xl font-semibold mt-8 mb-4">Quick Setup: Claude Desktop (local)</h2>
+      <h2 className="text-2xl font-semibold mt-8 mb-4">Quick Setup: Deploy with Docker</h2>
       <ol className="list-decimal pl-6 space-y-3 mb-6">
         <li>
-          Build the MCP server (from the repo root):
-          <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mt-2"><code>{`npm run mcp:build`}</code></pre>
+          Pull the images from the registry:
+          <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mt-2"><code>{`docker pull registry.gertrun.synology.me/multi-lingua:latest
+docker pull registry.gertrun.synology.me/multi-lingua-mcp:latest`}</code></pre>
         </li>
         <li>
           Obtain a session token — the easiest way is via <strong>Swagger UI</strong>:
           open <code>/api-docs</code>, execute <code>POST /api/auth/login</code> with your email,
           then execute <code>POST /api/auth/verify-login</code> with the OTP code and{' '}
           <code>{'"rememberMe": true'}</code>. The response body contains{' '}
-          <code>{'"token": "eyJ..."'}</code> — copy that value.
-          Alternatively, after a normal browser login open DevTools → Application → Cookies
-          and copy the <code>auth_token</code> cookie.
+          <code>{'"token": "..."'}</code> — copy that value.
+          Alternatively, after a normal browser login open DevTools → Storage (Firefox) or Application (Chrome) →
+          Cookies and copy the <code>auth_token</code> cookie value.
           <br /><em>Note: <code>GET /api/auth/me</code> returns only user metadata, not the token.</em>
         </li>
         <li>
-          Add the following to{' '}
-          <code>~/Library/Application Support/Claude/claude_desktop_config.json</code> (macOS):
-          <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mt-2"><code>{`{
-  "mcpServers": {
-    "multi-lingua": {
-      "command": "node",
-      "args": ["/path/to/multi-lingua-nextjs/mcp-server/dist/index.js"],
-      "env": {
-        "MULTI_LINGUA_URL": "http://localhost:3456",
-        "MULTI_LINGUA_TOKEN": "your-jwt-token-here"
-      }
-    }
-  }
-}`}</code></pre>
+          Set the token in your <code>.env</code> file:
+          <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mt-2"><code>{`MULTI_LINGUA_TOKEN=your-session-token-here`}</code></pre>
         </li>
-        <li>Restart Claude Desktop. The multi-lingua tools will appear in the tools panel.</li>
+        <li>
+          Start everything:
+          <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mt-2"><code>{`docker-compose up -d`}</code></pre>
+          The MCP endpoint will be reachable at <code>http://localhost:3457/mcp</code>.
+        </li>
       </ol>
 
-      <h2 className="text-2xl font-semibold mt-8 mb-4">Setup: Claude Code (CLI &amp; VS Code Extension)</h2>
+      <h2 className="text-2xl font-semibold mt-8 mb-4">Connect: Claude Desktop</h2>
       <p className="mb-4">
-        The Claude Code CLI and its VS Code extension share the same MCP configuration. Use the CLI to register
-        the server once — it becomes available in both the terminal and the editor immediately.
+        Add the following to{' '}
+        <code>~/Library/Application Support/Claude/claude_desktop_config.json</code> (macOS) or{' '}
+        <code>%APPDATA%\Claude\claude_desktop_config.json</code> (Windows):
       </p>
-      <p className="mb-2"><strong>stdio (local instance):</strong></p>
-      <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mb-4"><code>{`claude mcp add multi-lingua \\
-  --env MULTI_LINGUA_URL=http://localhost:3456 \\
-  --env MULTI_LINGUA_TOKEN=your-jwt-token-here \\
-  -- node /path/to/multi-lingua-nextjs/mcp-server/dist/index.js`}</code></pre>
-      <p className="mb-2"><strong>HTTP transport (when Docker compose is running):</strong></p>
-      <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mb-4"><code>{`claude mcp add --transport http multi-lingua http://localhost:3457/mcp`}</code></pre>
-      <p className="mb-2"><strong>Verify:</strong></p>
-      <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mb-4"><code>{`claude mcp list
-claude mcp get multi-lingua`}</code></pre>
-      <p className="mb-2">
-        For a project-scoped setup that all contributors share, create <code>.mcp.json</code> at the repo root.
-        Secrets stay outside the file via <code>{'${MULTI_LINGUA_TOKEN}'}</code> shell-variable expansion:
-      </p>
-      <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mb-6"><code>{`{
+      <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mb-4"><code>{`{
   "mcpServers": {
-    "multi-lingua": {
-      "type": "stdio",
-      "command": "node",
-      "args": ["./mcp-server/dist/index.js"],
-      "env": {
-        "MULTI_LINGUA_URL": "http://localhost:3456",
-        "MULTI_LINGUA_TOKEN": "\${MULTI_LINGUA_TOKEN}"
-      }
-    }
-  }
-}`}</code></pre>
-
-      <h2 className="text-2xl font-semibold mt-8 mb-4">Setup: VS Code with GitHub Copilot (native MCP)</h2>
-      <p className="mb-4">
-        VS Code 1.99+ supports MCP servers natively through the GitHub Copilot extension. Two scopes are
-        available: workspace (committed with the project) and user (private, not shared).
-      </p>
-      <p className="mb-2"><strong>Workspace-scoped — create <code>.vscode/mcp.json</code>:</strong></p>
-      <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mb-4"><code>{`{
-  "servers": {
-    "multi-lingua": {
-      "command": "node",
-      "args": ["/absolute/path/to/mcp-server/dist/index.js"],
-      "env": {
-        "MULTI_LINGUA_URL": "http://localhost:3456",
-        "MULTI_LINGUA_TOKEN": "\${env:MULTI_LINGUA_TOKEN}"
-      }
-    }
-  }
-}`}</code></pre>
-      <p className="mb-2">
-        Or point directly at the Docker HTTP endpoint — no token needed in the file:
-      </p>
-      <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mb-4"><code>{`{
-  "servers": {
     "multi-lingua": {
       "type": "http",
       "url": "http://localhost:3457/mcp"
     }
   }
 }`}</code></pre>
-      <p className="mb-2">
-        <strong>User-scoped</strong> — open the Command Palette (<kbd>Cmd+Shift+P</kbd>) →{' '}
-        <strong>MCP: Open User Configuration</strong>, then add under{' '}
-        <code>copilot.mcp.servers</code>:
+      <p className="mb-6">Restart Claude Desktop. The multi-lingua tools will appear in the tools panel.</p>
+
+      <h2 className="text-2xl font-semibold mt-8 mb-4">Connect: Claude Code CLI</h2>
+      <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mb-4"><code>{`claude mcp add --transport http multi-lingua http://localhost:3457/mcp`}</code></pre>
+      <p className="mb-2"><strong>Verify:</strong></p>
+      <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mb-6"><code>{`claude mcp list
+claude mcp get multi-lingua`}</code></pre>
+
+      <h2 className="text-2xl font-semibold mt-8 mb-4">Connect: VS Code with GitHub Copilot</h2>
+      <p className="mb-4">
+        VS Code 1.99+ supports MCP servers natively. Create <code>.vscode/mcp.json</code> in your workspace:
       </p>
       <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mb-4"><code>{`{
-  "copilot.mcp.servers": {
+  "servers": {
     "multi-lingua": {
-      "command": "node",
-      "args": ["/path/to/mcp-server/dist/index.js"],
-      "env": {
-        "MULTI_LINGUA_URL": "http://localhost:3456",
-        "MULTI_LINGUA_TOKEN": "\${env:MULTI_LINGUA_TOKEN}"
-      }
+      "type": "http",
+      "url": "http://localhost:3457/mcp"
     }
   }
 }`}</code></pre>
@@ -2877,35 +2815,17 @@ claude mcp get multi-lingua`}</code></pre>
 
       <h2 className="text-2xl font-semibold mt-8 mb-4">Connecting to a Remote Instance</h2>
       <p className="mb-4">
-        Point <code>MULTI_LINGUA_URL</code> at any deployed Multi-Lingua instance — local network, Synology NAS,
-        or any HTTPS URL. The token workflow is identical.
+        Point any MCP client at the HTTP endpoint of your deployed Multi-Lingua instance — on a Synology NAS,
+        home server, or any HTTPS URL. No local binaries needed.
       </p>
       <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mb-6"><code>{`{
   "mcpServers": {
-    "multi-lingua-remote": {
-      "command": "node",
-      "args": ["/path/to/mcp-server/dist/index.js"],
-      "env": {
-        "MULTI_LINGUA_URL": "https://your-nas.example.com",
-        "MULTI_LINGUA_TOKEN": "your-jwt-token-here"
-      }
+    "multi-lingua": {
+      "type": "http",
+      "url": "https://your-host.example.com:3457/mcp"
     }
   }
 }`}</code></pre>
-
-      <h2 className="text-2xl font-semibold mt-8 mb-4">Docker Deployment (HTTP transport)</h2>
-      <p className="mb-4">
-        Both docker-compose files include a <code>multi-lingua-mcp</code> service that starts the MCP server
-        in HTTP mode alongside the main app. Set <code>MULTI_LINGUA_TOKEN</code> in your <code>.env</code> file:
-      </p>
-      <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mb-6"><code>{`# .env
-MULTI_LINGUA_TOKEN=your-jwt-token-here
-
-# Start everything
-docker-compose up -d`}</code></pre>
-      <p className="mb-4">
-        The MCP endpoint will be reachable at <code>http://localhost:3457/mcp</code>.
-      </p>
 
       <h2 className="text-2xl font-semibold mt-8 mb-4">Environment Variables</h2>
       <div className="overflow-x-auto mb-6">
@@ -2919,24 +2839,19 @@ docker-compose up -d`}</code></pre>
           </thead>
           <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
             <tr>
+              <td className="py-2 pr-4 font-mono text-xs">MULTI_LINGUA_TOKEN</td>
+              <td className="py-2 pr-4 text-xs italic">required</td>
+              <td className="py-2 text-xs">Session token obtained from <code>POST /api/auth/verify-login</code></td>
+            </tr>
+            <tr>
               <td className="py-2 pr-4 font-mono text-xs">MULTI_LINGUA_URL</td>
               <td className="py-2 pr-4 font-mono text-xs">http://localhost:3456</td>
-              <td className="py-2 text-xs">Base URL of the Multi-Lingua instance to connect to</td>
-            </tr>
-            <tr>
-              <td className="py-2 pr-4 font-mono text-xs">MULTI_LINGUA_TOKEN</td>
-              <td className="py-2 pr-4 text-xs italic">config file</td>
-              <td className="py-2 text-xs">JWT session token. Takes precedence over <code>~/.multi-lingua-mcp.json</code></td>
-            </tr>
-            <tr>
-              <td className="py-2 pr-4 font-mono text-xs">MCP_TRANSPORT</td>
-              <td className="py-2 pr-4 font-mono text-xs">stdio</td>
-              <td className="py-2 text-xs"><code>stdio</code> for Claude Desktop; <code>http</code> for remote/Docker</td>
+              <td className="py-2 text-xs">Base URL the MCP container uses to reach the main app</td>
             </tr>
             <tr>
               <td className="py-2 pr-4 font-mono text-xs">MCP_PORT</td>
               <td className="py-2 pr-4 font-mono text-xs">3457</td>
-              <td className="py-2 text-xs">HTTP port (only used when <code>MCP_TRANSPORT=http</code>)</td>
+              <td className="py-2 text-xs">HTTP port the MCP server listens on</td>
             </tr>
           </tbody>
         </table>
@@ -2982,11 +2897,11 @@ docker-compose up -d`}</code></pre>
         </div>
       </div>
 
-      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mt-6">
-        <h3 className="text-blue-800 dark:text-blue-200 mt-0 mb-2">Full Specification</h3>
+      <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mt-6">
+        <h3 className="text-gray-800 dark:text-gray-200 mt-0 mb-2">Building from Source</h3>
         <p className="mb-0">
-          For the complete architecture decision, authentication flow, and deployment guide see{' '}
-          <code>MCP-SERVER-SPEC.md</code> in the repository root.
+          Looking to run the MCP server outside Docker, contribute to the project, or set up stdio transport
+          for local development? See the <strong>For Developers</strong> section in the sidebar.
         </p>
       </div>
     </div>
@@ -3353,23 +3268,16 @@ NEXT_PUBLIC_LOG_LEVEL=debug`}</code></pre>
         <h3 className="text-purple-800 dark:text-purple-200 mt-0 mb-2">📞 Additional Resources</h3>
         <ul className="list-disc pl-6 space-y-2 mb-0">
           <li>Review the <Link href="/api-docs" className="text-purple-700 dark:text-purple-300 hover:underline">API documentation</Link> for technical details</li>
-          <li>Check container logs for detailed error messages</li>
-          <li>Visit the GitHub repository for known issues and updates</li>
-          <li>Open an issue on GitHub with:
-            <ul className="list-disc pl-6 mt-1">
-              <li>Error messages from logs</li>
-              <li>Steps to reproduce the problem</li>
-              <li>Your environment (Docker version, OS, browser)</li>
-              <li>Provider being used when error occurred</li>
-            </ul>
-          </li>
+          <li>Check container logs for detailed error messages: <code>docker compose logs -f multi-lingua</code></li>
+          <li>Pull the latest image from the registry and redeploy to pick up bug fixes and new features</li>
+          <li>For source code, build instructions, and filing issues, see the <strong>For Developers</strong> section in the sidebar</li>
         </ul>
       </div>
 
       <h2 className="text-2xl font-semibold mt-8 mb-4">Quick Diagnostic Checklist</h2>
 
       <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4">
-        <p className="mb-2"><strong>Before opening an issue, check:</strong></p>
+        <p className="mb-2"><strong>Before reporting a problem, check:</strong></p>
         <ul className="list-disc pl-6 space-y-1 mb-0">
           <li>☐ All containers running: <code>docker compose ps</code></li>
           <li>☐ No errors in logs: <code>docker compose logs</code></li>
@@ -3382,6 +3290,140 @@ NEXT_PUBLIC_LOG_LEVEL=debug`}</code></pre>
           <li>☐ Correct endpoint for DeepL Free vs Pro</li>
         </ul>
       </div>
+    </div>
+  );
+}
+
+function DeveloperSection() {
+  return (
+    <div className="prose dark:prose-invert max-w-none text-gray-800 dark:text-gray-200">
+      <h1 className="text-3xl font-bold mb-6">For Developers</h1>
+
+      <p className="text-lg text-gray-600 dark:text-gray-400 mb-6">
+        Everything you need to build from source, run Multi-Lingua without Docker, contribute to the project,
+        or set up stdio transport for local development.
+      </p>
+
+      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
+        <h3 className="text-blue-800 dark:text-blue-200 mt-0 mb-2">GitHub Repository</h3>
+        <p className="mb-2">Source code, issue tracker, and contribution guide:</p>
+        <a
+          href="https://github.com/kjwenger/MultiLingua"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 dark:text-blue-400 hover:underline"
+        >
+          https://github.com/kjwenger/MultiLingua →
+        </a>
+      </div>
+
+      <h2 className="text-2xl font-semibold mt-8 mb-4">Build from Source</h2>
+      <ol className="list-decimal pl-6 space-y-3 mb-6">
+        <li>
+          Clone the repository:
+          <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mt-2"><code>{`git clone https://github.com/kjwenger/MultiLingua.git
+cd MultiLingua/Copilot.AI/multi-lingua-nextjs`}</code></pre>
+        </li>
+        <li>
+          Install dependencies:
+          <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mt-2"><code>{`npm install`}</code></pre>
+        </li>
+        <li>
+          Run the development server:
+          <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mt-2"><code>{`npm run dev`}</code></pre>
+        </li>
+        <li>
+          Build for production:
+          <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mt-2"><code>{`npm run build`}</code></pre>
+        </li>
+      </ol>
+
+      <h2 className="text-2xl font-semibold mt-8 mb-4">Build the MCP Server</h2>
+      <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mb-6"><code>{`npm run mcp:build`}</code></pre>
+      <p className="mb-4">
+        This compiles <code>mcp-server/index.ts</code> to <code>mcp-server/dist/index.js</code> (CJS, Node 20)
+        and copies <code>mcp-server/package.json</code> into <code>dist/</code> so the version is readable
+        at runtime.
+      </p>
+
+      <h2 className="text-2xl font-semibold mt-8 mb-4">MCP: stdio Transport (Local Development)</h2>
+      <p className="mb-4">
+        When running the app and MCP server locally (outside Docker) you can use stdio transport.
+        Claude spawns the process and communicates over stdin/stdout — no Docker port required.
+      </p>
+
+      <h3 className="text-xl font-semibold mt-6 mb-3">Claude Desktop (stdio)</h3>
+      <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mb-4"><code>{`{
+  "mcpServers": {
+    "multi-lingua": {
+      "command": "node",
+      "args": ["/absolute/path/to/mcp-server/dist/index.js"],
+      "env": {
+        "MULTI_LINGUA_URL": "http://localhost:3456",
+        "MULTI_LINGUA_TOKEN": "your-session-token-here"
+      }
+    }
+  }
+}`}</code></pre>
+
+      <h3 className="text-xl font-semibold mt-6 mb-3">Claude Code CLI (stdio)</h3>
+      <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mb-4"><code>{`claude mcp add multi-lingua \\
+  --env MULTI_LINGUA_URL=http://localhost:3456 \\
+  --env MULTI_LINGUA_TOKEN=your-session-token-here \\
+  -- node /absolute/path/to/mcp-server/dist/index.js`}</code></pre>
+      <p className="mb-4">
+        If <code>MULTI_LINGUA_TOKEN</code> is already exported in your shell environment (e.g. from{' '}
+        <code>~/.env</code>), you can omit the <code>--env MULTI_LINGUA_TOKEN</code> flag — the process
+        inherits the parent shell&apos;s environment.
+      </p>
+
+      <h3 className="text-xl font-semibold mt-6 mb-3">Project-scoped .mcp.json</h3>
+      <p className="mb-2">
+        Create <code>.mcp.json</code> at the repo root so all contributors get the same setup. Use shell
+        variable expansion to keep the token out of the file:
+      </p>
+      <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mb-6"><code>{`{
+  "mcpServers": {
+    "multi-lingua": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["./mcp-server/dist/index.js"],
+      "env": {
+        "MULTI_LINGUA_URL": "http://localhost:3456",
+        "MULTI_LINGUA_TOKEN": "\${MULTI_LINGUA_TOKEN}"
+      }
+    }
+  }
+}`}</code></pre>
+
+      <h3 className="text-xl font-semibold mt-6 mb-3">VS Code with GitHub Copilot (stdio)</h3>
+      <p className="mb-2">User-scoped via Command Palette → <strong>MCP: Open User Configuration</strong>:</p>
+      <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mb-6"><code>{`{
+  "copilot.mcp.servers": {
+    "multi-lingua": {
+      "command": "node",
+      "args": ["/absolute/path/to/mcp-server/dist/index.js"],
+      "env": {
+        "MULTI_LINGUA_URL": "http://localhost:3456",
+        "MULTI_LINGUA_TOKEN": "\${env:MULTI_LINGUA_TOKEN}"
+      }
+    }
+  }
+}`}</code></pre>
+
+      <h2 className="text-2xl font-semibold mt-8 mb-4">Build &amp; Push Docker Images</h2>
+      <p className="mb-4">
+        Multi-platform builds (linux/amd64 + linux/arm64) require docker-buildx and a Colima-backed builder.
+        See the top of <code>docker.sh</code> in the repo root for the one-time setup commands, then run:
+      </p>
+      <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mb-6"><code>{`VERSION=0.7.0 bash docker.sh`}</code></pre>
+
+      <h2 className="text-2xl font-semibold mt-8 mb-4">Versioning</h2>
+      <p className="mb-4">
+        The app and MCP server share a single semver. Use the npm <code>version</code> command from the repo
+        root — a lifecycle hook automatically syncs <code>mcp-server/package.json</code> in the same commit:
+      </p>
+      <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mb-6"><code>{`npm version minor   # bumps both package.json files and creates a git tag`}</code></pre>
     </div>
   );
 }
