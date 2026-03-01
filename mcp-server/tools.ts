@@ -1,6 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import type { MultiLinguaClient, ExportRecord } from './client';
+import type { MultiLinguaClient, ExportRecord, Provider } from './client';
 
 // ── Shared sub-schemas ────────────────────────────────────────────────────────
 
@@ -278,6 +278,59 @@ export function registerTools(server: McpServer, client: MultiLinguaClient): voi
     async ({ id }) => {
       try {
         const result = await client.deleteCategory(id);
+        return text(result);
+      } catch (err) {
+        return errorText(err);
+      }
+    },
+  );
+
+  // ── list_providers ──────────────────────────────────────────────────────────
+
+  server.tool(
+    'list_providers',
+    'List all configured translation providers and their current state. ' +
+    'Shows which provider is enabled (the active one used for all translations), ' +
+    'along with stored credentials and settings for each provider. ' +
+    'Sensitive fields such as api_key are returned as-is by the API.',
+    {},
+    async () => {
+      try {
+        const providers = await client.listProviders();
+        // Annotate with human-readable enabled status
+        const annotated = providers.map((p: Provider) => ({
+          ...p,
+          active: p.enabled === 1,
+        }));
+        return text(annotated);
+      } catch (err) {
+        return errorText(err);
+      }
+    },
+  );
+
+  // ── set_provider ─────────────────────────────────────────────────────────────
+
+  server.tool(
+    'set_provider',
+    'Enable or disable a translation provider and update its configuration. ' +
+    'Enabling a provider makes it the active provider used for all translations — ' +
+    'only one provider is active at a time; enabling one does NOT automatically disable others, ' +
+    'so you should disable the current provider first if you want to switch. ' +
+    'Known provider types: libretranslate, mymemory, google, deepl, azure, pons, tatoeba, ' +
+    'free-dictionary, oxford, merriam-webster.',
+    {
+      type: z.string().describe('Provider type identifier (e.g. "google", "deepl", "libretranslate").'),
+      enabled: z.boolean().describe('True to enable this provider (makes it the active provider); false to disable it.'),
+      apiKey: z.string().optional().describe('API key (required for Google, DeepL, Azure, PONS, Oxford, Merriam-Webster).'),
+      apiUrl: z.string().optional().describe('Custom API URL (required for LibreTranslate self-hosted instances).'),
+      region: z.string().optional().describe('Region code (required for Azure Translator).'),
+      email: z.string().optional().describe('Email address (optional for MyMemory, increases rate limit).'),
+      appId: z.string().optional().describe('App ID (required for Oxford Dictionary).'),
+    },
+    async ({ type, enabled, apiKey, apiUrl, region, email, appId }) => {
+      try {
+        const result = await client.saveProvider({ type, enabled, apiKey, apiUrl, region, email, appId });
         return text(result);
       } catch (err) {
         return errorText(err);

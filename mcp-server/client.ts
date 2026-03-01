@@ -39,6 +39,16 @@ export interface TranslateResult {
   spanish?: { translation: string; alternatives: string[] };
 }
 
+export interface Provider {
+  type: string;
+  enabled: number; // 0 or 1
+  api_key: string | null;
+  api_url: string | null;
+  region: string | null;
+  email: string | null;
+  app_id: string | null;
+}
+
 export interface ExportProposals {
   english: string[];
   german: string[];
@@ -273,6 +283,25 @@ export class MultiLinguaClient {
     return id;
   }
 
+  // ── Providers ───────────────────────────────────────────────────────────────
+
+  async listProviders(): Promise<Provider[]> {
+    const res = await this.request<{ providers: Provider[] }>('GET', '/api/providers');
+    return res.providers;
+  }
+
+  async saveProvider(data: {
+    type: string;
+    enabled: boolean;
+    apiKey?: string;
+    apiUrl?: string;
+    region?: string;
+    email?: string;
+    appId?: string;
+  }): Promise<{ success: boolean }> {
+    return this.request('POST', '/api/providers', data);
+  }
+
   // ── Export ──────────────────────────────────────────────────────────────────
 
   async exportTranslations(category?: string): Promise<ExportDoc> {
@@ -318,7 +347,7 @@ export class MultiLinguaClient {
       headers: {
         ...(this.token ? {
           'Authorization': `Bearer ${this.token}`,
-          'Cookie': `session=${this.token}`,
+          'Cookie': `auth_token=${this.token}`,
         } : {}),
       },
       body: formData,
