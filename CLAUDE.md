@@ -113,6 +113,24 @@ See `MCP-SERVER-SPEC.md` for the full specification, architecture rationale, and
 
 ---
 
+## Documentation Update Rules
+
+**IMPORTANT: Always keep documentation in sync with code changes.**
+
+### When the REST API changes (new endpoint, changed parameters, new response fields):
+- `lib/swagger.ts` — update the OpenAPI/Swagger spec
+- `app/api/openapi/route.ts` — if the OpenAPI route has inline spec, update it there too
+- `app/help/page.tsx` → `ApiReference` section — update the relevant endpoint description
+- Any README or markdown files that mention the affected endpoint
+
+### When MCP tools or resources change (added, removed, renamed, parameter changes):
+- `mcp-server/tools.ts` — primary source of truth (tool definitions)
+- `MCP-SERVER-SPEC.md` — add/update the tool's section with input schema and which API it calls
+- `app/help/page.tsx` → `McpServerSection` "Available Tools" list — add/update the tool entry
+- `app/help/page.tsx` → `DeveloperSection` if it references tool names
+
+---
+
 ## Translation Provider Architecture
 
 **IMPORTANT: NEVER implement or speak of a "fallback strategy" for translation providers.**

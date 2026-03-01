@@ -2558,6 +2558,16 @@ function ApiReference() {
 
         <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
           <div className="flex items-center gap-2 mb-2">
+            <span className="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs font-mono rounded">POST</span>
+            <code className="text-sm">/api/providers</code>
+          </div>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-0">
+            Save provider configuration — enable/disable a provider and update its credentials (apiKey, apiUrl, region, email, appId) — auth required
+          </p>
+        </div>
+
+        <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-2">
             <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs font-mono rounded">GET</span>
             <code className="text-sm">/api/categories</code>
           </div>
@@ -2872,6 +2882,8 @@ claude mcp get multi-lingua`}</code></pre>
           ['export_translations', 'Export all (or a filtered category) as a structured JSON payload'],
           ['import_analyze', 'Analyse a set of records — returns a diff report before committing'],
           ['import_execute', 'Apply import decisions returned by import_analyze'],
+          ['list_providers', 'List all translation providers and which one is currently active'],
+          ['set_provider', 'Enable or disable a provider and update its credentials (API key, URL, region, etc.)'],
         ].map(([name, desc]) => (
           <div key={name} className="flex gap-3 items-start text-sm">
             <code className="shrink-0 px-2 py-0.5 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded text-xs">{name}</code>

@@ -288,6 +288,36 @@ Execute an import with explicit per-record decisions. Typically called after rev
 
 ---
 
+#### `list_providers`
+List all configured translation providers and their current state — which is active (enabled), stored credentials, API URLs, and regions.
+
+**Input:** *(none)*
+
+**Returns:** Array of provider objects with fields `type`, `enabled` (0/1), `api_key`, `api_url`, `region`, `email`, `app_id`, and an annotated `active` boolean.
+
+**Calls:** `GET /api/providers`
+
+---
+
+#### `set_provider`
+Enable or disable a translation provider and optionally update its credentials. Enabling a provider makes it the single active provider used for all translations.
+
+**Input:**
+```json
+{
+  "type": "string (e.g. google, deepl, libretranslate, azure, mymemory, pons, tatoeba)",
+  "enabled": "boolean",
+  "apiKey": "string (optional)",
+  "apiUrl": "string (optional — required for LibreTranslate)",
+  "region": "string (optional — required for Azure)",
+  "email": "string (optional — MyMemory rate-limit boost)",
+  "appId": "string (optional — Oxford Dictionary)"
+}
+```
+**Calls:** `POST /api/providers`
+
+---
+
 ## MCP Resources
 
 Resources are read-only data exposed for AI assistants to inspect. Unlike tools, they do not perform mutations.

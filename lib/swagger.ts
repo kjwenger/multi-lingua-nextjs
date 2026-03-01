@@ -5,7 +5,7 @@ export const openApiSpec = {
   info: {
     title: 'Multi-Lingua Translation API',
     version: APP_VERSION,
-    description: 'REST API for multi-language translation management with support for multiple providers (LibreTranslate, MyMemory, DeepL, Google, Azure, PONS, Free Dictionary). An MCP server (`mcp-server/`) exposes this API as Model Context Protocol tools and resources for AI assistant integration.',
+    description: 'REST API for multi-language translation management with support for multiple providers (LibreTranslate, MyMemory, DeepL, Google, Azure, PONS, Tatoeba, Free Dictionary, Oxford, Merriam-Webster). An MCP server (`mcp-server/`) exposes this API as Model Context Protocol tools and resources for AI assistant integration.',
   },
   servers: [
     {
@@ -1335,7 +1335,7 @@ export const openApiSpec = {
         properties: {
           type: {
             type: 'string',
-            enum: ['libretranslate', 'mymemory', 'deepl', 'google', 'azure', 'pons', 'tatoeba'],
+            enum: ['libretranslate', 'mymemory', 'deepl', 'google', 'azure', 'pons', 'tatoeba', 'free-dictionary', 'oxford', 'merriam-webster'],
           },
           enabled: {
             type: 'integer',
@@ -1346,6 +1346,7 @@ export const openApiSpec = {
           api_url: { type: 'string', nullable: true },
           region: { type: 'string', nullable: true },
           email: { type: 'string', nullable: true, description: 'Email for MyMemory quota increase' },
+          app_id: { type: 'string', nullable: true, description: 'App ID for Oxford Dictionary' },
         },
       },
       ProviderConfigInput: {
@@ -1353,7 +1354,7 @@ export const openApiSpec = {
         properties: {
           type: {
             type: 'string',
-            enum: ['libretranslate', 'mymemory', 'deepl', 'google', 'azure', 'pons', 'tatoeba'],
+            enum: ['libretranslate', 'mymemory', 'deepl', 'google', 'azure', 'pons', 'tatoeba', 'free-dictionary', 'oxford', 'merriam-webster'],
             description: 'Provider type',
           },
           enabled: {
@@ -1364,6 +1365,7 @@ export const openApiSpec = {
           apiUrl: { type: 'string', description: 'API URL (for LibreTranslate)' },
           region: { type: 'string', description: 'Region (for Azure)' },
           email: { type: 'string', description: 'Email (for MyMemory)' },
+          appId: { type: 'string', description: 'App ID (for Oxford Dictionary)' },
         },
         required: ['type'],
       },
