@@ -72,7 +72,7 @@ MULTI_LINGUA_TOKEN=<jwt-from-login>
 The app uses OTP-based email authentication (no passwords). For MCP usage, the recommended approach is:
 
 1. **User logs in via the browser UI** on the target multi-lingua instance
-2. The JWT token is stored in an HTTP-only cookie, but the `/api/auth/me` response also returns it
+2. The JWT token is set as an HttpOnly cookie **and** returned in the `POST /api/auth/verify-login` response body as the `token` field — `/api/auth/me` returns only user metadata, not the token
 3. **User copies the token** to `~/.multi-lingua-mcp.json` (or sets `MULTI_LINGUA_TOKEN` env var)
 4. The MCP server reads this token and includes it as a `Bearer` header on every request
 5. On 401, the server attempts a token refresh via `POST /api/auth/refresh`; if that fails, it surfaces a clear error asking the user to log in again
@@ -540,13 +540,26 @@ Point `MULTI_LINGUA_URL` at the deployed instance. The token is obtained the sam
 
 ### Token Acquisition Workflow
 
-Since multi-lingua uses OTP email authentication, there is no password to store. The recommended workflow for obtaining a long-lived token is:
+Since multi-lingua uses OTP email authentication, there is no password to store. The token is returned directly in the `POST /api/auth/verify-login` response body — no DevTools required. The recommended workflow:
 
-1. Open the multi-lingua web UI in a browser
-2. Log in with "Remember Me" checked (extends session to 30 days)
-3. Open DevTools → Application → Cookies → copy the `session` cookie value (it is the JWT)
-4. Set `MULTI_LINGUA_TOKEN=<that value>` in your Claude Desktop config or `~/.multi-lingua-mcp.json`
-5. The MCP server will automatically attempt to refresh it before it expires
+**Option A — Swagger UI (easiest)**
+
+1. Open `<your-instance>/api-docs` in a browser
+2. Expand `POST /api/auth/login`, execute with your email → receive the OTP code by email
+3. Expand `POST /api/auth/verify-login`, execute with the email, code, and `"rememberMe": true` → the response body contains `"token": "eyJ..."`
+4. Copy that token value
+
+**Option B — Browser DevTools**
+
+1. Log in via the browser UI with "Remember Me" checked (extends session to 30 days)
+2. Open DevTools → Application → Cookies → copy the `session` cookie value
+
+Either way:
+
+5. Set `MULTI_LINGUA_TOKEN=<token>` in your Claude Desktop config or `~/.multi-lingua-mcp.json`
+6. The MCP server will automatically attempt to refresh it before it expires
+
+> **Note:** `GET /api/auth/me` returns only user metadata — it does **not** expose the token.
 
 **Future enhancement:** A `login` tool in the MCP server that initiates the OTP flow interactively — Claude asks for your email, the server calls `POST /api/auth/login`, Claude prompts for the code, and the server calls `POST /api/auth/verify-login` and stores the resulting token. This would eliminate the manual DevTools step entirely.
 

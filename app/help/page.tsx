@@ -2760,8 +2760,14 @@ function McpServerSection() {
           <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mt-2"><code>{`npm run mcp:build`}</code></pre>
         </li>
         <li>
-          Obtain a session token — log in via the browser with <strong>Remember Me</strong> checked, then open
-          DevTools → Application → Cookies and copy the <code>session</code> cookie value.
+          Obtain a session token — the easiest way is via <strong>Swagger UI</strong>:
+          open <code>/api-docs</code>, execute <code>POST /api/auth/login</code> with your email,
+          then execute <code>POST /api/auth/verify-login</code> with the OTP code and{' '}
+          <code>{'"rememberMe": true'}</code>. The response body contains{' '}
+          <code>{'"token": "eyJ..."'}</code> — copy that value.
+          Alternatively, after a normal browser login open DevTools → Application → Cookies
+          and copy the <code>session</code> cookie.
+          <br /><em>Note: <code>GET /api/auth/me</code> returns only user metadata, not the token.</em>
         </li>
         <li>
           Add the following to{' '}
