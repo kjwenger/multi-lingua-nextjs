@@ -461,7 +461,7 @@ The MCP server ships as a minimal three-stage Docker image (`mcp-server/Dockerfi
 
 The image defaults to `MCP_TRANSPORT=http` and `MCP_PORT=3457`.
 
-All three docker-compose files (`docker-compose.yml`, `docker-compose-multi-lingua.yml`) include a `multi-lingua-mcp` service that connects to the `multi-lingua` service via the internal Docker network:
+Both docker-compose files (`docker-compose.yml`, `docker-compose-multi-lingua.yml`) include a `multi-lingua-mcp` service that connects to the `multi-lingua` service via the internal Docker network:
 
 ```yaml
 multi-lingua-mcp:

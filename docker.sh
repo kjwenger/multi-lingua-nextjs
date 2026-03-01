@@ -1,5 +1,5 @@
 #!/bin/bash
-# Build and push multi-lingua Docker image
+# Build and push multi-lingua and multi-lingua-mcp Docker images
 # Version is automatically read from package.json
 
 set -e
@@ -8,6 +8,7 @@ set -e
 VERSION=$(node -p "require('./package.json').version")
 REGISTRY="registry.gertrun.synology.me"
 IMAGE_NAME="multi-lingua"
+MCP_IMAGE_NAME="multi-lingua-mcp"
 
 echo "Building ${IMAGE_NAME} version ${VERSION}..."
 
@@ -34,9 +35,17 @@ fi
 
 docker compose down
 
+# Build main app image
 VERSION=${VERSION} docker compose build multi-lingua
 if [ $? -ne 0 ]; then
-    echo "ERROR: Build failed!"
+    echo "ERROR: multi-lingua build failed!"
+    exit 1
+fi
+
+# Build MCP server image
+VERSION=${VERSION} docker compose build multi-lingua-mcp
+if [ $? -ne 0 ]; then
+    echo "ERROR: multi-lingua-mcp build failed!"
     exit 1
 fi
 
@@ -45,5 +54,11 @@ docker push ${REGISTRY}/${IMAGE_NAME}:${VERSION}
 docker push ${REGISTRY}/${IMAGE_NAME}:latest
 
 echo "Successfully pushed ${REGISTRY}/${IMAGE_NAME}:${VERSION} and :latest"
+
+docker tag ${REGISTRY}/${MCP_IMAGE_NAME}:${VERSION} ${REGISTRY}/${MCP_IMAGE_NAME}:latest
+docker push ${REGISTRY}/${MCP_IMAGE_NAME}:${VERSION}
+docker push ${REGISTRY}/${MCP_IMAGE_NAME}:latest
+
+echo "Successfully pushed ${REGISTRY}/${MCP_IMAGE_NAME}:${VERSION} and :latest"
 
 docker compose up -d

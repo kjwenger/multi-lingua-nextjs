@@ -22,6 +22,7 @@ export default function HelpPage() {
     { id: 'usage', title: 'Using the App' },
     { id: 'categories', title: 'Categories' },
     { id: 'export-import', title: 'Export & Import' },
+    { id: 'mcp-server', title: 'MCP Server' },
     { id: 'api', title: 'API Reference' },
     { id: 'troubleshooting', title: 'Troubleshooting' },
   ];
@@ -76,6 +77,7 @@ export default function HelpPage() {
           {activeSection === 'usage' && <Usage />}
           {activeSection === 'categories' && <CategoriesSection />}
           {activeSection === 'export-import' && <ExportImportSection />}
+          {activeSection === 'mcp-server' && <McpServerSection />}
           {activeSection === 'api' && <ApiReference />}
           {activeSection === 'troubleshooting' && <Troubleshooting />}
         </main>
@@ -279,6 +281,7 @@ function Features() {
       <ul className="list-disc pl-6 space-y-2 mb-6">
         <li><strong>RESTful API:</strong> Full CRUD operations via HTTP endpoints</li>
         <li><strong>OpenAPI/Swagger:</strong> Interactive API documentation at <code>/api-docs</code></li>
+        <li><strong>MCP Server:</strong> Standalone Model Context Protocol server for AI assistant integration (Claude Desktop, HTTP transport)</li>
         <li><strong>Structured Logging:</strong> Color-coded logs in browser and server</li>
         <li><strong>Docker Compose:</strong> One-command deployment</li>
         <li><strong>Environment Configuration:</strong> Flexible .env configuration</li>
@@ -2710,6 +2713,188 @@ Content-Type: application/json
         >
           Visit the API Documentation Page →
         </Link>
+      </div>
+    </div>
+  );
+}
+
+function McpServerSection() {
+  return (
+    <div className="prose dark:prose-invert max-w-none text-gray-800 dark:text-gray-200">
+      <h1 className="text-3xl font-bold mb-6">MCP Server</h1>
+
+      <p className="text-lg text-gray-600 dark:text-gray-400 mb-6">
+        Multi-Lingua ships with a standalone <strong>Model Context Protocol (MCP) server</strong> that lets
+        AI assistants — such as Claude — read and write your vocabulary store directly, turning natural language
+        into vocabulary management actions without any copy-pasting.
+      </p>
+
+      <h2 className="text-2xl font-semibold mt-8 mb-4">Why Connect an AI to Multi-Lingua?</h2>
+      <p className="mb-4">
+        The use-cases that become trivial once an MCP server is running are the ones that feel impossibly
+        tedious to do manually:
+      </p>
+      <ul className="list-disc pl-6 space-y-2 mb-6">
+        <li>&ldquo;Add these 20 vocabulary words from the article I just read to the &lsquo;travel&rsquo; category and auto-translate them&rdquo; — a single conversational instruction instead of ten minutes of copy-pasting.</li>
+        <li>&ldquo;Find all my translations that are missing a German proposal&rdquo; — impossible from the UI, trivial for an AI with list access.</li>
+        <li>&ldquo;Extract all the nouns from this Spanish paragraph, look up which ones I don&apos;t have yet, and add the new ones&rdquo; — a compound workflow that only works when the AI has direct write access.</li>
+        <li>&ldquo;Resolve this import conflict: keep my French translation but take the incoming German one&rdquo; — natural-language conflict resolution.</li>
+      </ul>
+
+      <h2 className="text-2xl font-semibold mt-8 mb-4">Architecture</h2>
+      <p className="mb-4">
+        The MCP server lives in <code>mcp-server/</code> — a standalone Node.js package that wraps the
+        Multi-Lingua REST API. It does not touch the database directly; it is a thin client of the existing
+        application, meaning it works equally well against a local instance or a remote one on a NAS.
+      </p>
+      <p className="mb-4">Two transport modes are supported:</p>
+      <ul className="list-disc pl-6 space-y-2 mb-6">
+        <li><strong>stdio</strong> (default) — for Claude Desktop on the same machine; Claude spawns the process and communicates over stdin/stdout.</li>
+        <li><strong>HTTP / Streamable HTTP</strong> — for remote or Docker-deployed use; the server listens on port 3457 and accepts MCP connections over HTTP POST to <code>/mcp</code>.</li>
+      </ul>
+
+      <h2 className="text-2xl font-semibold mt-8 mb-4">Quick Setup: Claude Desktop (local)</h2>
+      <ol className="list-decimal pl-6 space-y-3 mb-6">
+        <li>
+          Build the MCP server (from the repo root):
+          <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mt-2"><code>{`npm run mcp:build`}</code></pre>
+        </li>
+        <li>
+          Obtain a session token — log in via the browser with <strong>Remember Me</strong> checked, then open
+          DevTools → Application → Cookies and copy the <code>session</code> cookie value.
+        </li>
+        <li>
+          Add the following to{' '}
+          <code>~/Library/Application Support/Claude/claude_desktop_config.json</code> (macOS):
+          <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mt-2"><code>{`{
+  "mcpServers": {
+    "multi-lingua": {
+      "command": "node",
+      "args": ["/path/to/multi-lingua-nextjs/mcp-server/dist/index.js"],
+      "env": {
+        "MULTI_LINGUA_URL": "http://localhost:3456",
+        "MULTI_LINGUA_TOKEN": "your-jwt-token-here"
+      }
+    }
+  }
+}`}</code></pre>
+        </li>
+        <li>Restart Claude Desktop. The multi-lingua tools will appear in the tools panel.</li>
+      </ol>
+
+      <h2 className="text-2xl font-semibold mt-8 mb-4">Connecting to a Remote Instance</h2>
+      <p className="mb-4">
+        Point <code>MULTI_LINGUA_URL</code> at any deployed Multi-Lingua instance — local network, Synology NAS,
+        or any HTTPS URL. The token workflow is identical.
+      </p>
+      <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mb-6"><code>{`{
+  "mcpServers": {
+    "multi-lingua-remote": {
+      "command": "node",
+      "args": ["/path/to/mcp-server/dist/index.js"],
+      "env": {
+        "MULTI_LINGUA_URL": "https://your-nas.example.com",
+        "MULTI_LINGUA_TOKEN": "your-jwt-token-here"
+      }
+    }
+  }
+}`}</code></pre>
+
+      <h2 className="text-2xl font-semibold mt-8 mb-4">Docker Deployment (HTTP transport)</h2>
+      <p className="mb-4">
+        Both docker-compose files include a <code>multi-lingua-mcp</code> service that starts the MCP server
+        in HTTP mode alongside the main app. Set <code>MULTI_LINGUA_TOKEN</code> in your <code>.env</code> file:
+      </p>
+      <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mb-6"><code>{`# .env
+MULTI_LINGUA_TOKEN=your-jwt-token-here
+
+# Start everything
+docker-compose up -d`}</code></pre>
+      <p className="mb-4">
+        The MCP endpoint will be reachable at <code>http://localhost:3457/mcp</code>.
+      </p>
+
+      <h2 className="text-2xl font-semibold mt-8 mb-4">Environment Variables</h2>
+      <div className="overflow-x-auto mb-6">
+        <table className="w-full text-sm border-collapse">
+          <thead>
+            <tr className="border-b border-gray-200 dark:border-gray-700">
+              <th className="text-left py-2 pr-4 font-semibold">Variable</th>
+              <th className="text-left py-2 pr-4 font-semibold">Default</th>
+              <th className="text-left py-2 font-semibold">Description</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+            <tr>
+              <td className="py-2 pr-4 font-mono text-xs">MULTI_LINGUA_URL</td>
+              <td className="py-2 pr-4 font-mono text-xs">http://localhost:3456</td>
+              <td className="py-2 text-xs">Base URL of the Multi-Lingua instance to connect to</td>
+            </tr>
+            <tr>
+              <td className="py-2 pr-4 font-mono text-xs">MULTI_LINGUA_TOKEN</td>
+              <td className="py-2 pr-4 text-xs italic">config file</td>
+              <td className="py-2 text-xs">JWT session token. Takes precedence over <code>~/.multi-lingua-mcp.json</code></td>
+            </tr>
+            <tr>
+              <td className="py-2 pr-4 font-mono text-xs">MCP_TRANSPORT</td>
+              <td className="py-2 pr-4 font-mono text-xs">stdio</td>
+              <td className="py-2 text-xs"><code>stdio</code> for Claude Desktop; <code>http</code> for remote/Docker</td>
+            </tr>
+            <tr>
+              <td className="py-2 pr-4 font-mono text-xs">MCP_PORT</td>
+              <td className="py-2 pr-4 font-mono text-xs">3457</td>
+              <td className="py-2 text-xs">HTTP port (only used when <code>MCP_TRANSPORT=http</code>)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 className="text-2xl font-semibold mt-8 mb-4">Available Tools</h2>
+      <div className="space-y-2 mb-6">
+        {[
+          ['list_translations', 'List all translations, optionally filtered by category'],
+          ['get_translation', 'Look up a translation by ID or English text'],
+          ['create_translation', 'Add a new entry; optionally auto-translate missing languages'],
+          ['update_translation', 'Update fields of an existing entry'],
+          ['delete_translation', 'Delete an entry by ID'],
+          ['translate_text', 'Translate text via the active provider without storing it'],
+          ['list_categories', 'List all categories with their translation counts'],
+          ['create_category', 'Create a new category'],
+          ['delete_category', 'Delete a category (affected translations become uncategorized)'],
+          ['export_translations', 'Export all (or a filtered category) as a structured JSON payload'],
+          ['import_analyze', 'Analyse a set of records — returns a diff report before committing'],
+          ['import_execute', 'Apply import decisions returned by import_analyze'],
+        ].map(([name, desc]) => (
+          <div key={name} className="flex gap-3 items-start text-sm">
+            <code className="shrink-0 px-2 py-0.5 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded text-xs">{name}</code>
+            <span className="text-gray-600 dark:text-gray-400">{desc}</span>
+          </div>
+        ))}
+      </div>
+
+      <h2 className="text-2xl font-semibold mt-8 mb-4">Available Resources</h2>
+      <div className="space-y-3 mb-6">
+        <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+          <code className="text-sm font-semibold">multi-lingua://translations</code>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 mb-0">
+            Live list of all translations visible to the authenticated user. Supports an optional{' '}
+            <code>category</code> filter: <code>multi-lingua://translations/Greetings</code>.
+          </p>
+        </div>
+        <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+          <code className="text-sm font-semibold">multi-lingua://categories</code>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 mb-0">
+            Live list of all categories with translation counts.
+          </p>
+        </div>
+      </div>
+
+      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mt-6">
+        <h3 className="text-blue-800 dark:text-blue-200 mt-0 mb-2">Full Specification</h3>
+        <p className="mb-0">
+          For the complete architecture decision, authentication flow, and deployment guide see{' '}
+          <code>MCP-SERVER-SPEC.md</code> in the repository root.
+        </p>
       </div>
     </div>
   );

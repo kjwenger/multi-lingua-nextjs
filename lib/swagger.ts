@@ -5,7 +5,7 @@ export const openApiSpec = {
   info: {
     title: 'Multi-Lingua Translation API',
     version: APP_VERSION,
-    description: 'API for multi-language translation with support for multiple providers (LibreTranslate, MyMemory, DeepL, Google, Azure, PONS, Free Dictionary)',
+    description: 'REST API for multi-language translation management with support for multiple providers (LibreTranslate, MyMemory, DeepL, Google, Azure, PONS, Free Dictionary). An MCP server (`mcp-server/`) exposes this API as Model Context Protocol tools and resources for AI assistant integration.',
   },
   servers: [
     {
