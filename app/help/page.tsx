@@ -2766,7 +2766,7 @@ function McpServerSection() {
           <code>{'"rememberMe": true'}</code>. The response body contains{' '}
           <code>{'"token": "eyJ..."'}</code> — copy that value.
           Alternatively, after a normal browser login open DevTools → Application → Cookies
-          and copy the <code>session</code> cookie.
+          and copy the <code>auth_token</code> cookie.
           <br /><em>Note: <code>GET /api/auth/me</code> returns only user metadata, not the token.</em>
         </li>
         <li>

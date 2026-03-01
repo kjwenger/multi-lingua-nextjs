@@ -552,7 +552,7 @@ Since multi-lingua uses OTP email authentication, there is no password to store.
 **Option B — Browser DevTools**
 
 1. Log in via the browser UI with "Remember Me" checked (extends session to 30 days)
-2. Open DevTools → Application → Cookies → copy the `session` cookie value
+2. Open DevTools → Application → Cookies → copy the `auth_token` cookie value
 
 Either way:
 

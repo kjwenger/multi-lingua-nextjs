@@ -165,7 +165,7 @@ export class MultiLinguaClient {
     if (this.token) {
       headers['Authorization'] = `Bearer ${this.token}`;
       // Also send as cookie for cookie-based auth
-      headers['Cookie'] = `session=${this.token}`;
+      headers['Cookie'] = `auth_token=${this.token}`;
     }
     return headers;
   }
