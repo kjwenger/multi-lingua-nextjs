@@ -49,12 +49,12 @@ act push --secret MY_SECRET=value
 
 ### Workflow jobs in this project
 
-| Job | Command | What it does |
-|---|---|---|
-| `lint` | `npm run lint` | ESLint across the Next.js app |
-| `typecheck` | `npx tsc --noEmit` | TypeScript check (Next.js app only) |
-| `build-app` | `npm run build` | Next.js production build |
-| `build-mcp` | `npm run mcp:install && npm run mcp:build` | MCP server bundle via tsup |
+| Job         | Command                                    | What it does                        |
+|-------------|--------------------------------------------|-------------------------------------|
+| `lint`      | `npm run lint`                             | ESLint across the Next.js app       |
+| `typecheck` | `npx tsc --noEmit`                         | TypeScript check (Next.js app only) |
+| `build-app` | `npm run build`                            | Next.js production build            |
+| `build-mcp` | `npm run mcp:install && npm run mcp:build` | MCP server bundle via tsup          |
 
 ### Gotchas
 
