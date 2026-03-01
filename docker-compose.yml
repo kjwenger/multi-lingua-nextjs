@@ -45,6 +45,27 @@ services:
     networks:
       - multi-lingua-network
 
+  # MCP server — exposes Multi-Lingua as a Streamable HTTP MCP endpoint.
+  # Set MULTI_LINGUA_TOKEN in your .env file (copy the session JWT from the browser).
+  multi-lingua-mcp:
+    build:
+      context: ./mcp-server
+      dockerfile: Dockerfile
+    image: registry.gertrun.synology.me/multi-lingua-mcp:${VERSION:-dev}
+    container_name: multi-lingua-mcp
+    ports:
+      - "3457:3457"
+    environment:
+      - MCP_TRANSPORT=http
+      - MCP_PORT=3457
+      - MULTI_LINGUA_URL=http://multi-lingua:3456
+      - MULTI_LINGUA_TOKEN=${MULTI_LINGUA_TOKEN:-}
+    depends_on:
+      - multi-lingua
+    restart: unless-stopped
+    networks:
+      - multi-lingua-network
+
 networks:
   multi-lingua-network:
     driver: bridge

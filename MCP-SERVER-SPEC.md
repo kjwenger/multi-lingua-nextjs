@@ -441,7 +441,7 @@ Since multi-lingua uses OTP email authentication, there is no password to store.
 
 **Future enhancement:** A `login` tool in the MCP server that initiates the OTP flow interactively — Claude asks for your email, the server calls `POST /api/auth/login`, Claude prompts for the code, and the server calls `POST /api/auth/verify-login` and stores the resulting token. This would eliminate the manual DevTools step entirely.
 
-### HTTP Transport Mode (embedded / remote MCP)
+### HTTP Transport Mode (standalone process)
 
 If you want to expose the MCP server itself over HTTP (e.g., to allow a remote Claude.ai instance to connect to your local vocabulary store), start it in HTTP mode:
 
@@ -450,6 +450,44 @@ MCP_TRANSPORT=http MCP_PORT=3457 MULTI_LINGUA_URL=http://localhost:3456 node mcp
 ```
 
 This starts a Streamable HTTP server on port 3457 that accepts MCP protocol connections. Note that this does not add any additional authentication on top of the MCP protocol itself — if you expose port 3457 publicly, anyone can use it. For remote exposure, put it behind a reverse proxy that handles TLS and authentication.
+
+### Docker Deployment
+
+The MCP server ships as a minimal three-stage Docker image (`mcp-server/Dockerfile`):
+
+1. **deps** — `npm ci --omit=dev` to install only production dependencies
+2. **builder** — full install + `npm run build` (tsup) to produce `dist/index.js`
+3. **runner** — `node:20-alpine` with production node_modules + bundle; runs as a non-root `mcpserver` user
+
+The image defaults to `MCP_TRANSPORT=http` and `MCP_PORT=3457`.
+
+All three docker-compose files (`docker-compose.yml`, `docker-compose-multi-lingua.yml`) include a `multi-lingua-mcp` service that connects to the `multi-lingua` service via the internal Docker network:
+
+```yaml
+multi-lingua-mcp:
+  image: registry.gertrun.synology.me/multi-lingua-mcp:VERSION
+  ports:
+    - "3457:3457"
+  environment:
+    - MULTI_LINGUA_URL=http://multi-lingua:3456
+    - MULTI_LINGUA_TOKEN=${MULTI_LINGUA_TOKEN:-}
+```
+
+Set `MULTI_LINGUA_TOKEN` in your `.env` file (same directory as the compose file). Obtain the token via the browser DevTools workflow described above.
+
+**Multi-platform build & push** (see also `CLAUDE.md`):
+
+```bash
+DOCKER_HOST=unix:///Users/kjwenger/.colima/docker.sock \
+  docker-buildx build \
+    --builder multiplatform \
+    --platform linux/amd64,linux/arm64 \
+    -t registry.gertrun.synology.me/multi-lingua-mcp:VERSION \
+    -t registry.gertrun.synology.me/multi-lingua-mcp:latest \
+    --push \
+    -f mcp-server/Dockerfile \
+    mcp-server/
+```
 
 ---
 
@@ -463,5 +501,5 @@ These are out of scope for the initial implementation but represent natural next
 4. **Proposals tools** — `get_proposals` and `set_proposals` for managing alternative translation suggestions per entry.
 5. **Share/unshare tool** — `share_translation` (admin only) to set `user_id = NULL`, making a translation visible to all users.
 6. **Published npm package** — publish `multi-lingua-mcp` to npm so users can install it with `npx` without cloning the repo.
-7. **Docker image** — a minimal Docker image for the HTTP transport mode, deployable alongside the main app via docker-compose.
+7. ~~**Docker image**~~ — **done.** `mcp-server/Dockerfile` (three-stage, `node:20-alpine`), integrated into all docker-compose files, multi-platform buildx command in `CLAUDE.md`.
 8. **Anki integration** — a `create_anki_deck` tool that exports a category as a `.apkg` file using `genanki`, bridging multi-lingua and the Anki flashcard system documented in `ANKI.md`.

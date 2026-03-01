@@ -15,7 +15,7 @@ DOCKER_HOST=unix:///Users/kjwenger/.colima/docker.sock \
     --platform linux/amd64,linux/arm64 --use
 ```
 
-### Build & push (run from repo root each release)
+### Build & push — main app (run from repo root each release)
 ```bash
 DOCKER_HOST=unix:///Users/kjwenger/.colima/docker.sock \
   docker-buildx build \
@@ -26,7 +26,20 @@ DOCKER_HOST=unix:///Users/kjwenger/.colima/docker.sock \
     --push \
     .
 ```
-Replace `VERSION` with the current semver (e.g. `0.5.0`).
+
+### Build & push — MCP server (run from repo root each release)
+```bash
+DOCKER_HOST=unix:///Users/kjwenger/.colima/docker.sock \
+  docker-buildx build \
+    --builder multiplatform \
+    --platform linux/amd64,linux/arm64 \
+    -t registry.gertrun.synology.me/multi-lingua-mcp:VERSION \
+    -t registry.gertrun.synology.me/multi-lingua-mcp:latest \
+    --push \
+    -f mcp-server/Dockerfile \
+    mcp-server/
+```
+Replace `VERSION` with the current semver (e.g. `0.6.0`) in both commands.
 
 ### Gotchas
 - **`docker compose` not found**: use `docker-compose` (hyphenated binary) in this environment.
