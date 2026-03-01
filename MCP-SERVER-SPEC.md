@@ -410,6 +410,115 @@ Or using `npx` once the package is published:
 }
 ```
 
+After saving, restart Claude Desktop. The multi-lingua tools will appear in the tool picker.
+
+---
+
+### Claude Code (CLI & VS Code Extension)
+
+The Claude Code CLI (`claude`) and its VS Code extension share the same MCP configuration. Servers added via the CLI are immediately available in both contexts.
+
+**Add with stdio transport (local instance):**
+
+```bash
+claude mcp add multi-lingua \
+  --env MULTI_LINGUA_URL=http://localhost:3456 \
+  --env MULTI_LINGUA_TOKEN=your-jwt-token-here \
+  -- node /path/to/multi-lingua-nextjs/mcp-server/dist/index.js
+```
+
+**Add with HTTP transport (when Docker compose is running):**
+
+```bash
+claude mcp add --transport http multi-lingua http://localhost:3457/mcp
+```
+
+**Verify:**
+
+```bash
+claude mcp list
+claude mcp get multi-lingua
+```
+
+**Project-scoped configuration (`.mcp.json` at repo root)** — checked in so all contributors share the same server definition. Secrets stay outside the file via `${ENV_VAR}` expansion:
+
+```json
+{
+  "mcpServers": {
+    "multi-lingua": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["./mcp-server/dist/index.js"],
+      "env": {
+        "MULTI_LINGUA_URL": "http://localhost:3456",
+        "MULTI_LINGUA_TOKEN": "${MULTI_LINGUA_TOKEN}"
+      }
+    }
+  }
+}
+```
+
+Set `MULTI_LINGUA_TOKEN` as a shell environment variable (e.g. in `~/.zshrc` or `~/.bash_profile`) and it will be picked up automatically.
+
+---
+
+### VS Code with GitHub Copilot (native MCP, VS Code 1.99+)
+
+VS Code supports MCP servers natively through the GitHub Copilot extension. Two scopes are available.
+
+**Workspace-scoped (`.vscode/mcp.json`)** — committed alongside the project; applies to everyone who opens the workspace:
+
+```json
+{
+  "servers": {
+    "multi-lingua": {
+      "command": "node",
+      "args": ["/absolute/path/to/mcp-server/dist/index.js"],
+      "env": {
+        "MULTI_LINGUA_URL": "http://localhost:3456",
+        "MULTI_LINGUA_TOKEN": "${env:MULTI_LINGUA_TOKEN}"
+      }
+    }
+  }
+}
+```
+
+`${env:MULTI_LINGUA_TOKEN}` reads from the shell environment so tokens are never hardcoded.
+
+**HTTP transport variant** (when `docker-compose up` is running — no token needed in the config):
+
+```json
+{
+  "servers": {
+    "multi-lingua": {
+      "type": "http",
+      "url": "http://localhost:3457/mcp"
+    }
+  }
+}
+```
+
+**User-scoped** — open the Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`) → **MCP: Open User Configuration**, then add:
+
+```json
+{
+  "copilot.mcp.servers": {
+    "multi-lingua": {
+      "command": "node",
+      "args": ["/path/to/mcp-server/dist/index.js"],
+      "env": {
+        "MULTI_LINGUA_URL": "http://localhost:3456",
+        "MULTI_LINGUA_TOKEN": "${env:MULTI_LINGUA_TOKEN}"
+      }
+    }
+  }
+}
+```
+
+**Activating** — after saving the config, open the Copilot Chat panel, click the **`@`** button, and `multi-lingua` should appear in the tools list. If it does not, run **Developer: Reload Window**.
+
+---
+
 ### Remote Instance (Synology NAS)
 
 Point `MULTI_LINGUA_URL` at the deployed instance. The token is obtained the same way — log in via the browser, copy the JWT from the session. Everything else is identical.

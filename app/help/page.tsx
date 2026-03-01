@@ -2782,6 +2782,93 @@ function McpServerSection() {
         <li>Restart Claude Desktop. The multi-lingua tools will appear in the tools panel.</li>
       </ol>
 
+      <h2 className="text-2xl font-semibold mt-8 mb-4">Setup: Claude Code (CLI &amp; VS Code Extension)</h2>
+      <p className="mb-4">
+        The Claude Code CLI and its VS Code extension share the same MCP configuration. Use the CLI to register
+        the server once — it becomes available in both the terminal and the editor immediately.
+      </p>
+      <p className="mb-2"><strong>stdio (local instance):</strong></p>
+      <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mb-4"><code>{`claude mcp add multi-lingua \\
+  --env MULTI_LINGUA_URL=http://localhost:3456 \\
+  --env MULTI_LINGUA_TOKEN=your-jwt-token-here \\
+  -- node /path/to/multi-lingua-nextjs/mcp-server/dist/index.js`}</code></pre>
+      <p className="mb-2"><strong>HTTP transport (when Docker compose is running):</strong></p>
+      <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mb-4"><code>{`claude mcp add --transport http multi-lingua http://localhost:3457/mcp`}</code></pre>
+      <p className="mb-2"><strong>Verify:</strong></p>
+      <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mb-4"><code>{`claude mcp list
+claude mcp get multi-lingua`}</code></pre>
+      <p className="mb-2">
+        For a project-scoped setup that all contributors share, create <code>.mcp.json</code> at the repo root.
+        Secrets stay outside the file via <code>{'${MULTI_LINGUA_TOKEN}'}</code> shell-variable expansion:
+      </p>
+      <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mb-6"><code>{`{
+  "mcpServers": {
+    "multi-lingua": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["./mcp-server/dist/index.js"],
+      "env": {
+        "MULTI_LINGUA_URL": "http://localhost:3456",
+        "MULTI_LINGUA_TOKEN": "\${MULTI_LINGUA_TOKEN}"
+      }
+    }
+  }
+}`}</code></pre>
+
+      <h2 className="text-2xl font-semibold mt-8 mb-4">Setup: VS Code with GitHub Copilot (native MCP)</h2>
+      <p className="mb-4">
+        VS Code 1.99+ supports MCP servers natively through the GitHub Copilot extension. Two scopes are
+        available: workspace (committed with the project) and user (private, not shared).
+      </p>
+      <p className="mb-2"><strong>Workspace-scoped — create <code>.vscode/mcp.json</code>:</strong></p>
+      <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mb-4"><code>{`{
+  "servers": {
+    "multi-lingua": {
+      "command": "node",
+      "args": ["/absolute/path/to/mcp-server/dist/index.js"],
+      "env": {
+        "MULTI_LINGUA_URL": "http://localhost:3456",
+        "MULTI_LINGUA_TOKEN": "\${env:MULTI_LINGUA_TOKEN}"
+      }
+    }
+  }
+}`}</code></pre>
+      <p className="mb-2">
+        Or point directly at the Docker HTTP endpoint — no token needed in the file:
+      </p>
+      <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mb-4"><code>{`{
+  "servers": {
+    "multi-lingua": {
+      "type": "http",
+      "url": "http://localhost:3457/mcp"
+    }
+  }
+}`}</code></pre>
+      <p className="mb-2">
+        <strong>User-scoped</strong> — open the Command Palette (<kbd>Cmd+Shift+P</kbd>) →{' '}
+        <strong>MCP: Open User Configuration</strong>, then add under{' '}
+        <code>copilot.mcp.servers</code>:
+      </p>
+      <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mb-4"><code>{`{
+  "copilot.mcp.servers": {
+    "multi-lingua": {
+      "command": "node",
+      "args": ["/path/to/mcp-server/dist/index.js"],
+      "env": {
+        "MULTI_LINGUA_URL": "http://localhost:3456",
+        "MULTI_LINGUA_TOKEN": "\${env:MULTI_LINGUA_TOKEN}"
+      }
+    }
+  }
+}`}</code></pre>
+      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
+        <p className="mb-0 text-sm">
+          After saving, open the Copilot Chat panel and click the <strong>@</strong> button —{' '}
+          <code>multi-lingua</code> should appear in the tools list. If not, run{' '}
+          <strong>Developer: Reload Window</strong> from the Command Palette.
+        </p>
+      </div>
+
       <h2 className="text-2xl font-semibold mt-8 mb-4">Connecting to a Remote Instance</h2>
       <p className="mb-4">
         Point <code>MULTI_LINGUA_URL</code> at any deployed Multi-Lingua instance — local network, Synology NAS,
