@@ -21,6 +21,7 @@ export default function HelpPage() {
     { id: 'setup-tatoeba', title: 'Tatoeba Setup' },
     { id: 'usage', title: 'Using the App' },
     { id: 'categories', title: 'Categories' },
+    { id: 'export-import', title: 'Export & Import' },
     { id: 'api', title: 'API Reference' },
     { id: 'troubleshooting', title: 'Troubleshooting' },
   ];
@@ -74,6 +75,7 @@ export default function HelpPage() {
           {activeSection === 'setup-tatoeba' && <TatoebaSetup />}
           {activeSection === 'usage' && <Usage />}
           {activeSection === 'categories' && <CategoriesSection />}
+          {activeSection === 'export-import' && <ExportImportSection />}
           {activeSection === 'api' && <ApiReference />}
           {activeSection === 'troubleshooting' && <Troubleshooting />}
         </main>
@@ -258,6 +260,7 @@ function Features() {
         <li><strong>Alphabetical Sorting:</strong> Sort translations by English column</li>
         <li><strong>Bulk Operations:</strong> Add and delete multiple translation entries</li>
         <li><strong>Category Organisation:</strong> Group translations into named categories and filter the list by category</li>
+        <li><strong>Export / Import:</strong> Download all (or filtered) translations as a portable <code>.ml.json.gz</code> file and re-import them into any Multi-Lingua instance with conflict resolution</li>
       </ul>
 
       <h2 className="text-2xl font-semibold mt-8 mb-4">Text-to-Speech</h2>
@@ -295,8 +298,6 @@ function Features() {
       <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4 mt-6">
         <h3 className="text-purple-800 dark:text-purple-200 mt-0 mb-2">🚀 Coming Soon</h3>
         <ul className="list-disc pl-6 space-y-1 mb-0">
-          <li>Export translations to JSON/CSV</li>
-          <li>Import existing translation files</li>
           <li>Translation history and versioning</li>
           <li>Custom terminology/glossaries</li>
           <li>Batch translation upload</li>
@@ -2258,6 +2259,153 @@ function Usage() {
   );
 }
 
+function ExportImportSection() {
+  return (
+    <div className="prose dark:prose-invert max-w-none text-gray-800 dark:text-gray-200">
+      <h1 className="text-3xl font-bold mb-6">Export &amp; Import</h1>
+
+      <p className="text-lg text-gray-600 dark:text-gray-400 mb-6">
+        Move your translation data between Multi-Lingua instances — e.g. from a development environment to
+        production, or from a laptop to a NAS — using the portable <code>.ml.json.gz</code> format.
+      </p>
+
+      <h2 className="text-2xl font-semibold mt-8 mb-4">The .ml.json.gz Format</h2>
+      <p className="mb-4">
+        An <code>.ml.json.gz</code> file is a <strong>gzip-compressed JSON</strong> document. You can inspect it
+        with any gzip tool:
+      </p>
+      <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mb-4"><code>{`gunzip -c translations-2026-02-27.ml.json.gz | python3 -m json.tool`}</code></pre>
+      <p className="mb-4">The decompressed JSON looks like this:</p>
+      <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded mb-6"><code>{`{
+  "format": "multi-lingua-export",
+  "version": 1,
+  "exported_at": "2026-02-27T12:00:00.000Z",
+  "records": [
+    {
+      "english": "Hello",
+      "german": "Hallo",
+      "french": "Bonjour",
+      "italian": "Ciao",
+      "spanish": "Hola",
+      "proposals": {
+        "english": ["Hi"],
+        "german": [],
+        "french": [],
+        "italian": [],
+        "spanish": []
+      },
+      "category": "Greetings"
+    }
+  ]
+}`}</code></pre>
+      <ul className="list-disc pl-6 space-y-2 mb-6">
+        <li><code>proposals</code> are stored as <strong>arrays</strong> (not JSON-strings-inside-JSON as in the database)</li>
+        <li><code>category</code> is the <strong>category name</strong> (or <code>null</code>) — portable across instances; the importer looks up or creates the category by name</li>
+        <li>No <code>id</code>, <code>user_id</code>, <code>created_at</code>, or <code>updated_at</code> — those are not portable</li>
+        <li><code>version: 1</code> integer — future importers can guard on this</li>
+      </ul>
+
+      <h2 className="text-2xl font-semibold mt-8 mb-4">Exporting Translations</h2>
+      <p className="mb-4">The Export button (download-arrow icon) is available in the toolbar on both the <strong>Categories</strong> page and the <strong>Translations</strong> page:</p>
+      <ul className="list-disc pl-6 space-y-2 mb-6">
+        <li><strong>From the Categories page</strong> — exports <em>all</em> translations across every category. The downloaded file is named <code>translations-YYYY-MM-DD.ml.json.gz</code>.</li>
+        <li><strong>From the Translations page (no filter)</strong> — also exports all translations.</li>
+        <li><strong>From the Translations page (inside a category)</strong> — exports only that category&apos;s records. The filename includes the category name, e.g. <code>translations-Greetings-YYYY-MM-DD.ml.json.gz</code>.</li>
+      </ul>
+
+      <h2 className="text-2xl font-semibold mt-8 mb-4">Importing Translations</h2>
+      <ol className="list-decimal pl-6 space-y-2 mb-6">
+        <li>Click the <strong>upload-arrow</strong> icon button in the toolbar (available on both the Categories page and the Translations page) to open the Import dialog</li>
+        <li>Click <strong>Select .ml.json.gz file…</strong> and choose your file</li>
+        <li>Multi-Lingua analyses the file and classifies every record (see table below)</li>
+        <li>If there are conflicts, a review screen shows each one — choose <strong>Ignore</strong>, <strong>Replace</strong>, or <strong>Add as new</strong> per record (or use the bulk buttons)</li>
+        <li>Click <strong>Execute Import</strong> (or wait — if there are no conflicts, the import runs automatically)</li>
+        <li>A summary shows how many records were created, replaced, added, auto-updated, or ignored</li>
+      </ol>
+
+      <h2 className="text-2xl font-semibold mt-8 mb-4">Record Classification</h2>
+      <p className="mb-4">
+        Records are matched by <strong>English text</strong> (case-insensitive, trimmed):
+      </p>
+      <div className="overflow-x-auto mb-6">
+        <table className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded">
+          <thead className="bg-gray-50 dark:bg-gray-700">
+            <tr>
+              <th className="px-3 py-2 text-left font-semibold">Match?</th>
+              <th className="px-3 py-2 text-left font-semibold">Language fields</th>
+              <th className="px-3 py-2 text-left font-semibold">Proposals</th>
+              <th className="px-3 py-2 text-left font-semibold">Category</th>
+              <th className="px-3 py-2 text-left font-semibold">Action</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+            <tr>
+              <td className="px-3 py-2">No</td>
+              <td className="px-3 py-2">—</td>
+              <td className="px-3 py-2">—</td>
+              <td className="px-3 py-2">—</td>
+              <td className="px-3 py-2"><span className="bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-200 px-1.5 rounded text-xs font-mono">create</span> (automatic)</td>
+            </tr>
+            <tr>
+              <td className="px-3 py-2">Yes</td>
+              <td className="px-3 py-2">same</td>
+              <td className="px-3 py-2">same</td>
+              <td className="px-3 py-2">same</td>
+              <td className="px-3 py-2"><span className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-1.5 rounded text-xs font-mono">skip</span> (exact duplicate)</td>
+            </tr>
+            <tr>
+              <td className="px-3 py-2">Yes</td>
+              <td className="px-3 py-2">same</td>
+              <td className="px-3 py-2">same</td>
+              <td className="px-3 py-2">differs</td>
+              <td className="px-3 py-2"><span className="bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200 px-1.5 rounded text-xs font-mono">auto_update</span> (category silently updated)</td>
+            </tr>
+            <tr>
+              <td className="px-3 py-2">Yes</td>
+              <td className="px-3 py-2">same</td>
+              <td className="px-3 py-2">differs</td>
+              <td className="px-3 py-2">any</td>
+              <td className="px-3 py-2"><span className="bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-200 px-1.5 rounded text-xs font-mono">conflict</span> → user decides</td>
+            </tr>
+            <tr>
+              <td className="px-3 py-2">Yes</td>
+              <td className="px-3 py-2">differs</td>
+              <td className="px-3 py-2">any</td>
+              <td className="px-3 py-2">any</td>
+              <td className="px-3 py-2"><span className="bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-200 px-1.5 rounded text-xs font-mono">conflict</span> → user decides</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 className="text-2xl font-semibold mt-8 mb-4">Conflict Resolution Options</h2>
+      <ul className="list-disc pl-6 space-y-2 mb-6">
+        <li><strong>Ignore</strong> — keep the existing record unchanged (default)</li>
+        <li><strong>Replace</strong> — overwrite the existing record with all fields from the incoming record</li>
+        <li><strong>Add as new</strong> — insert the incoming record as a brand-new entry (both records will exist)</li>
+      </ul>
+      <p className="mb-4">
+        Use the <strong>Ignore all / Replace all / Add all as new</strong> buttons to apply the same decision to every conflict at once, then override individual records if needed.
+      </p>
+
+      <h2 className="text-2xl font-semibold mt-8 mb-4">Category Handling</h2>
+      <ul className="list-disc pl-6 space-y-2 mb-6">
+        <li>If an imported record references a category that does not exist on the target instance, the category is <strong>created automatically</strong></li>
+        <li>Records with <code>&quot;category&quot;: null</code> are imported as uncategorized</li>
+        <li>A category-only difference (same translations, different category) is resolved <strong>silently</strong> — no conflict dialog appears</li>
+      </ul>
+
+      <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mt-6">
+        <h4 className="text-yellow-800 dark:text-yellow-200 mt-0 mb-2">⚠️ Invalid File</h4>
+        <p className="mb-0">
+          Uploading a file that is not a valid <code>.ml.json.gz</code> archive (wrong format, wrong version, or
+          not gzip-compressed) will show a <code>422</code> error in the import dialog.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function CategoriesSection() {
   return (
     <div className="prose dark:prose-invert max-w-none text-gray-800 dark:text-gray-200">
@@ -2442,6 +2590,36 @@ function ApiReference() {
             Delete a category by ID — admin only; affected translations become uncategorized
           </p>
         </div>
+
+        <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs font-mono rounded">GET</span>
+            <code className="text-sm">/api/export</code>
+          </div>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-0">
+            Download all translations (or a filtered category) as a gzip-compressed <code>.ml.json.gz</code> file — auth required
+          </p>
+        </div>
+
+        <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs font-mono rounded">POST</span>
+            <code className="text-sm">/api/import?action=analyze</code>
+          </div>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-0">
+            Upload a <code>.ml.json.gz</code> file (multipart) and classify every record as <code>create</code>, <code>skip</code>, <code>auto_update</code>, or <code>conflict</code> — auth required
+          </p>
+        </div>
+
+        <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs font-mono rounded">POST</span>
+            <code className="text-sm">/api/import?action=execute</code>
+          </div>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-0">
+            Apply import decisions (JSON body with <code>decisions</code> array); missing categories are created automatically — auth required
+          </p>
+        </div>
       </div>
 
       <h2 className="text-2xl font-semibold mt-8 mb-4">Example: Translate Text</h2>
@@ -2506,6 +2684,7 @@ Content-Type: application/json
         <li><code>403</code> - Forbidden (admin role required)</li>
         <li><code>404</code> - Not Found</li>
         <li><code>409</code> - Conflict (e.g. duplicate category name)</li>
+        <li><code>422</code> - Unprocessable Entity (e.g. invalid <code>.ml.json.gz</code> file format)</li>
         <li><code>500</code> - Internal Server Error</li>
       </ul>
 

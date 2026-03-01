@@ -9,6 +9,7 @@ import { ApiDocsButton } from '@/components/ApiDocsButton';
 import { HelpButton } from '@/components/HelpButton';
 import { UserManagementButton } from '@/components/UserManagementButton';
 import { LogoutButton } from '@/components/LogoutButton';
+import { ImportDialog } from '@/components/ImportDialog';
 import { useAuth } from '@/components/AuthProvider';
 
 interface Category {
@@ -28,6 +29,7 @@ export default function CategoriesPage() {
   const [isAdding, setIsAdding] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [addError, setAddError] = useState<string | null>(null);
+  const [showImportDialog, setShowImportDialog] = useState(false);
 
   // Redirect to landing if not authenticated
   useEffect(() => {
@@ -107,6 +109,14 @@ export default function CategoriesPage() {
     }
   };
 
+  const handleExport = () => {
+    const a = document.createElement('a');
+    a.href = '/api/export';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') handleAddCategory();
     if (e.key === 'Escape') { setIsAdding(false); setNewCategoryName(''); setAddError(null); }
@@ -144,6 +154,36 @@ export default function CategoriesPage() {
                   {user && <LogoutButton />}
                   {user && (
                     <button
+                      onClick={handleExport}
+                      className="relative inline-flex items-center justify-center p-2 rounded-lg border transition-colors duration-200
+                                border-gray-300 dark:border-gray-600
+                                hover:bg-gray-100 dark:hover:bg-gray-700
+                                text-gray-600 dark:text-gray-400"
+                      aria-label="Export all translations"
+                      title="Export all translations"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                    </button>
+                  )}
+                  {user && (
+                    <button
+                      onClick={() => setShowImportDialog(true)}
+                      className="relative inline-flex items-center justify-center p-2 rounded-lg border transition-colors duration-200
+                                border-gray-300 dark:border-gray-600
+                                hover:bg-gray-100 dark:hover:bg-gray-700
+                                text-gray-600 dark:text-gray-400"
+                      aria-label="Import translations"
+                      title="Import translations"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l4-4m0 0l4 4m-4-4v12" />
+                      </svg>
+                    </button>
+                  )}
+                  {user && (
+                    <button
                       onClick={() => { setIsAdding(true); setAddError(null); }}
                       className="relative inline-flex items-center justify-center p-2 rounded-lg border transition-colors duration-200
                                 bg-blue-600 dark:bg-blue-500 border-blue-600 dark:border-blue-500
@@ -167,6 +207,36 @@ export default function CategoriesPage() {
                 {user?.role === 'admin' && <UserManagementButton />}
                 {user?.role === 'admin' && <ThemeToggle />}
                 {user && <LogoutButton />}
+                {user && (
+                  <button
+                    onClick={handleExport}
+                    className="relative inline-flex items-center justify-center p-2 rounded-lg border transition-colors duration-200
+                              border-gray-300 dark:border-gray-600
+                              hover:bg-gray-100 dark:hover:bg-gray-700
+                              text-gray-600 dark:text-gray-400"
+                    aria-label="Export all translations"
+                    title="Export all translations"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                  </button>
+                )}
+                {user && (
+                  <button
+                    onClick={() => setShowImportDialog(true)}
+                    className="relative inline-flex items-center justify-center p-2 rounded-lg border transition-colors duration-200
+                              border-gray-300 dark:border-gray-600
+                              hover:bg-gray-100 dark:hover:bg-gray-700
+                              text-gray-600 dark:text-gray-400"
+                    aria-label="Import translations"
+                    title="Import translations"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l4-4m0 0l4 4m-4-4v12" />
+                    </svg>
+                  </button>
+                )}
                 {user && (
                   <button
                     onClick={() => { setIsAdding(true); setAddError(null); }}
@@ -267,6 +337,13 @@ export default function CategoriesPage() {
           </div>
         </div>
       </div>
+
+      {showImportDialog && (
+        <ImportDialog
+          onClose={() => setShowImportDialog(false)}
+          onComplete={fetchCategories}
+        />
+      )}
     </div>
   );
 }

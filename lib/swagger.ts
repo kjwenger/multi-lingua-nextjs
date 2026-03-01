@@ -280,6 +280,100 @@ export const openApiSpec = {
         },
       },
     },
+    '/api/export': {
+      get: {
+        tags: ['Export / Import'],
+        summary: 'Export all translations as a .ml.json.gz file',
+        description: 'Returns a gzip-compressed JSON file (`.ml.json.gz`) containing all translations visible to the authenticated user. Optionally filter to a single category. The file can later be re-imported via `POST /api/import?action=analyze`.',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'category',
+            in: 'query',
+            required: false,
+            schema: { type: 'string' },
+            description: 'Filter export to a single category name. Omit to export all translations.',
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Gzip-compressed `.ml.json.gz` file download',
+            content: {
+              'application/gzip': {
+                schema: { type: 'string', format: 'binary' },
+              },
+            },
+            headers: {
+              'Content-Disposition': {
+                schema: { type: 'string' },
+                description: 'e.g. `attachment; filename="translations-2026-02-27.ml.json.gz"`',
+              },
+            },
+          },
+          '401': { description: 'Authentication required' },
+          '500': { description: 'Failed to export translations' },
+        },
+      },
+    },
+    '/api/import': {
+      post: {
+        tags: ['Export / Import'],
+        summary: 'Analyse or execute a translation import',
+        description: 'Two-phase import endpoint controlled by the `action` query parameter.\n\n**`?action=analyze`** — Upload a `.ml.json.gz` file as `multipart/form-data` (field name `file`). Returns a classification of every record: `create`, `skip`, `auto_update`, or `conflict`.\n\n**`?action=execute`** — Apply the decisions returned by the analyse phase. Send a JSON body with a `decisions` array.',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'action',
+            in: 'query',
+            required: true,
+            schema: { type: 'string', enum: ['analyze', 'execute'] },
+            description: '`analyze` — upload and classify; `execute` — apply decisions',
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'multipart/form-data': {
+              schema: {
+                type: 'object',
+                properties: {
+                  file: {
+                    type: 'string',
+                    format: 'binary',
+                    description: 'The `.ml.json.gz` file produced by `GET /api/export` (only for `action=analyze`)',
+                  },
+                },
+                required: ['file'],
+              },
+            },
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ImportExecuteRequest',
+              },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'Analysis summary (`action=analyze`) or execution result (`action=execute`)',
+            content: {
+              'application/json': {
+                schema: {
+                  oneOf: [
+                    { $ref: '#/components/schemas/ImportAnalyzeSummary' },
+                    { $ref: '#/components/schemas/ImportExecuteResult' },
+                  ],
+                },
+              },
+            },
+          },
+          '400': { description: 'Missing file or invalid action parameter' },
+          '401': { description: 'Authentication required' },
+          '422': { description: 'Invalid file format or unsupported version' },
+          '500': { description: 'Failed to analyse or execute import' },
+        },
+      },
+    },
     '/api/categories': {
       get: {
         tags: ['Categories'],
@@ -1122,6 +1216,120 @@ export const openApiSpec = {
           translation_count: { type: 'integer', description: 'Number of translations assigned to this category' },
         },
       },
+      ExportRecord: {
+        type: 'object',
+        description: 'A single translation entry in the portable `.ml.json.gz` export format',
+        properties: {
+          english: { type: 'string', example: 'Hello' },
+          german: { type: 'string', example: 'Hallo' },
+          french: { type: 'string', example: 'Bonjour' },
+          italian: { type: 'string', example: 'Ciao' },
+          spanish: { type: 'string', example: 'Hola' },
+          proposals: {
+            type: 'object',
+            description: 'Alternative translations per language (arrays, not JSON strings)',
+            properties: {
+              english: { type: 'array', items: { type: 'string' } },
+              german: { type: 'array', items: { type: 'string' } },
+              french: { type: 'array', items: { type: 'string' } },
+              italian: { type: 'array', items: { type: 'string' } },
+              spanish: { type: 'array', items: { type: 'string' } },
+            },
+          },
+          category: {
+            type: 'string',
+            nullable: true,
+            description: 'Category name string (null if uncategorized). Portable — category is resolved by name on import.',
+            example: 'Greetings',
+          },
+        },
+        required: ['english'],
+      },
+      ImportAnalyzeResult: {
+        type: 'object',
+        description: 'Classification of a single record during the analyse phase',
+        properties: {
+          status: {
+            type: 'string',
+            enum: ['create', 'skip', 'auto_update', 'conflict'],
+            description: '`create` — new record; `skip` — exact duplicate; `auto_update` — category-only diff, applied automatically; `conflict` — user decision required',
+          },
+          incoming: { $ref: '#/components/schemas/ExportRecord' },
+          existing: {
+            type: 'object',
+            nullable: true,
+            description: 'The matching existing record (present when status ≠ create)',
+            properties: {
+              id: { type: 'integer' },
+              english: { type: 'string' },
+              german: { type: 'string' },
+              french: { type: 'string' },
+              italian: { type: 'string' },
+              spanish: { type: 'string' },
+              proposals: { type: 'object' },
+              category: { type: 'string', nullable: true },
+            },
+          },
+          conflictType: {
+            type: 'object',
+            nullable: true,
+            description: 'Present only when status is `conflict`',
+            properties: {
+              proposalsOnly: { type: 'boolean', description: 'true if only proposals differ; false if language fields differ' },
+            },
+          },
+        },
+      },
+      ImportAnalyzeSummary: {
+        type: 'object',
+        description: 'Response from `POST /api/import?action=analyze`',
+        properties: {
+          total: { type: 'integer', description: 'Total records in the file' },
+          creates: { type: 'integer', description: 'Records that will be inserted as new' },
+          skips: { type: 'integer', description: 'Exact duplicates that will be skipped' },
+          autoUpdates: { type: 'integer', description: 'Records with only a category difference — updated automatically' },
+          conflicts: { type: 'integer', description: 'Records requiring a user decision' },
+          results: {
+            type: 'array',
+            items: { $ref: '#/components/schemas/ImportAnalyzeResult' },
+          },
+        },
+      },
+      ImportExecuteRequest: {
+        type: 'object',
+        description: 'Request body for `POST /api/import?action=execute`',
+        properties: {
+          decisions: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                incoming: { $ref: '#/components/schemas/ExportRecord' },
+                existingId: { type: 'integer', nullable: true, description: 'ID of the existing record (required for replace / auto_update)' },
+                decision: {
+                  type: 'string',
+                  enum: ['create', 'auto_update', 'ignore', 'replace', 'add_as_new'],
+                  description: '`create` — insert as new; `replace` — overwrite existing; `add_as_new` — insert duplicate; `auto_update` — update category only; `ignore` — skip',
+                },
+              },
+              required: ['incoming', 'decision'],
+            },
+          },
+        },
+        required: ['decisions'],
+      },
+      ImportExecuteResult: {
+        type: 'object',
+        description: 'Response from `POST /api/import?action=execute`',
+        properties: {
+          created: { type: 'integer' },
+          replaced: { type: 'integer' },
+          addedAsNew: { type: 'integer' },
+          autoUpdated: { type: 'integer' },
+          ignored: { type: 'integer' },
+          errors: { type: 'array', items: { type: 'string' }, description: 'Per-record error messages (non-fatal)' },
+        },
+      },
       ProviderConfig: {
         type: 'object',
         properties: {
@@ -1181,6 +1389,10 @@ export const openApiSpec = {
     {
       name: 'Categories',
       description: 'Category management for organising translations',
+    },
+    {
+      name: 'Export / Import',
+      description: 'Portable `.ml.json.gz` export and category-aware import of translation data',
     },
     {
       name: 'Admin',

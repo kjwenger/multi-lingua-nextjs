@@ -11,6 +11,7 @@ import { LogoutButton } from '@/components/LogoutButton';
 import { ProviderSelector } from '@/components/ProviderSelector';
 import { TranslationCard } from '@/components/TranslationCard';
 import { TranslationDetailModal } from '@/components/TranslationDetailModal';
+import { ImportDialog } from '@/components/ImportDialog';
 import { useAuth } from '@/components/AuthProvider';
 import { playTextToSpeech } from '@/lib/tts';
 import { logger } from '@/lib/logger';
@@ -67,6 +68,7 @@ function TranslationsContent() {
   const [selectedTranslationId, setSelectedTranslationId] = useState<number | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [openCategoryDropdownId, setOpenCategoryDropdownId] = useState<number | null>(null);
+  const [showImportDialog, setShowImportDialog] = useState(false);
 
   // Redirect to landing if not authenticated
   useEffect(() => {
@@ -405,6 +407,15 @@ function TranslationsContent() {
     }
   };
 
+  const handleExport = () => {
+    const q = activeCategory ? `?category=${encodeURIComponent(activeCategory)}` : '';
+    const a = document.createElement('a');
+    a.href = `/api/export${q}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center transition-colors duration-200">
@@ -453,6 +464,36 @@ function TranslationsContent() {
                   {user && <LogoutButton />}
                   {user && (
                     <button
+                      onClick={handleExport}
+                      className="relative inline-flex items-center justify-center p-2 rounded-lg border transition-colors duration-200
+                                border-gray-300 dark:border-gray-600
+                                hover:bg-gray-100 dark:hover:bg-gray-700
+                                text-gray-600 dark:text-gray-400"
+                      aria-label="Export translations"
+                      title="Export translations"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                    </button>
+                  )}
+                  {user && (
+                    <button
+                      onClick={() => setShowImportDialog(true)}
+                      className="relative inline-flex items-center justify-center p-2 rounded-lg border transition-colors duration-200
+                                border-gray-300 dark:border-gray-600
+                                hover:bg-gray-100 dark:hover:bg-gray-700
+                                text-gray-600 dark:text-gray-400"
+                      aria-label="Import translations"
+                      title="Import translations"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l4-4m0 0l4 4m-4-4v12" />
+                      </svg>
+                    </button>
+                  )}
+                  {user && (
+                    <button
                       onClick={addNewRow}
                       className="relative inline-flex items-center justify-center p-2 rounded-lg border transition-colors duration-200
                                 bg-blue-600 dark:bg-blue-500 border-blue-600 dark:border-blue-500
@@ -477,6 +518,36 @@ function TranslationsContent() {
                 {user?.role === 'admin' && <UserManagementButton />}
                 {user?.role === 'admin' && <ThemeToggle />}
                 {user && <LogoutButton />}
+                {user && (
+                  <button
+                    onClick={handleExport}
+                    className="relative inline-flex items-center justify-center p-2 rounded-lg border transition-colors duration-200
+                              border-gray-300 dark:border-gray-600
+                              hover:bg-gray-100 dark:hover:bg-gray-700
+                              text-gray-600 dark:text-gray-400"
+                    aria-label="Export translations"
+                    title="Export translations"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                  </button>
+                )}
+                {user && (
+                  <button
+                    onClick={() => setShowImportDialog(true)}
+                    className="relative inline-flex items-center justify-center p-2 rounded-lg border transition-colors duration-200
+                              border-gray-300 dark:border-gray-600
+                              hover:bg-gray-100 dark:hover:bg-gray-700
+                              text-gray-600 dark:text-gray-400"
+                    aria-label="Import translations"
+                    title="Import translations"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l4-4m0 0l4 4m-4-4v12" />
+                    </svg>
+                  </button>
+                )}
                 {user && (
                   <button
                     onClick={addNewRow}
@@ -1041,6 +1112,14 @@ function TranslationsContent() {
           )}
         </div>
       </div>
+
+      {/* Import Dialog */}
+      {showImportDialog && (
+        <ImportDialog
+          onClose={() => setShowImportDialog(false)}
+          onComplete={() => { fetchTranslations(); fetchCategories(); }}
+        />
+      )}
 
       {/* Detail Modal for Mobile */}
       {isMobile && selectedTranslationId !== null && (() => {
