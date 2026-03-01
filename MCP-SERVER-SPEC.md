@@ -63,7 +63,7 @@ MULTI_LINGUA_URL=http://localhost:3456
 MULTI_LINGUA_TOKEN=<jwt-from-login>
 
 # Remote instance (Synology NAS or any deployed instance)
-MULTI_LINGUA_URL=https://registry.gertrun.synology.me
+MULTI_LINGUA_URL=https://multi-lingua.gertrun.synology.me
 MULTI_LINGUA_TOKEN=<jwt-from-login>
 ```
 
@@ -530,7 +530,7 @@ Point `MULTI_LINGUA_URL` at the deployed instance. The token is obtained the sam
       "command": "node",
       "args": ["/path/to/mcp-server/dist/index.js"],
       "env": {
-        "MULTI_LINGUA_URL": "https://registry.gertrun.synology.me",
+        "MULTI_LINGUA_URL": "https://multi-lingua.gertrun.synology.me",
         "MULTI_LINGUA_TOKEN": "your-jwt-token-here"
       }
     }
