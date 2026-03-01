@@ -38,6 +38,68 @@ Replace `VERSION` with the current semver (e.g. `0.5.0`).
 
 ---
 
+## MCP Server (`mcp-server/`)
+
+The standalone MCP server lives in `mcp-server/` and wraps the app's REST API. It is a separate npm package — install and build it independently of the Next.js app.
+
+### Setup
+```bash
+npm run mcp:install   # cd mcp-server && npm install
+npm run mcp:build     # uses tsup (esbuild) — outputs single bundle to mcp-server/dist/index.js
+```
+
+### Running
+```bash
+# stdio transport — for Claude Desktop (default)
+npm run mcp:start
+
+# HTTP / Streamable-HTTP transport — for remote or embedded use
+npm run mcp:start:http          # default port 3457
+MCP_PORT=4000 npm run mcp:start:http
+```
+
+### Key environment variables
+| Variable | Default | Purpose |
+|---|---|---|
+| `MULTI_LINGUA_URL` | `http://localhost:3456` | URL of the multi-lingua instance |
+| `MULTI_LINGUA_TOKEN` | _(from config file)_ | JWT session token |
+| `MCP_TRANSPORT` | `stdio` | `stdio` or `http` |
+| `MCP_PORT` | `3457` | Port for HTTP transport |
+| `MCP_CONFIG_FILE` | `~/.multi-lingua-mcp.json` | Persistent token config |
+
+### Claude Desktop config snippet (macOS)
+Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+```json
+{
+  "mcpServers": {
+    "multi-lingua": {
+      "command": "node",
+      "args": ["/absolute/path/to/multi-lingua-nextjs/mcp-server/dist/index.js"],
+      "env": {
+        "MULTI_LINGUA_URL": "http://localhost:3456",
+        "MULTI_LINGUA_TOKEN": "<your-jwt-token>"
+      }
+    }
+  }
+}
+```
+
+### Getting a token
+1. Log in to the multi-lingua web UI with "Remember Me" checked
+2. Open DevTools → Application → Cookies → copy the `session` cookie value
+3. Set it as `MULTI_LINGUA_TOKEN` in the Claude Desktop config or `~/.multi-lingua-mcp.json`
+
+### Gotchas
+- **All logs go to stderr** — stdout is reserved for the stdio MCP protocol stream
+- **HTTP transport is stateless** — a new server+transport pair is created per request (correct by design)
+- **`category_id` in updates** — the client resolves category names to IDs automatically; never pass raw IDs in tool calls
+- **Build outputs to `mcp-server/dist/`** — the `mcp-server/node_modules/` is separate from the root `node_modules/`; run `mcp:install` before `mcp:build`
+- **Build uses `tsup` not `tsc`** — `tsc` OOMs on the MCP SDK's large type tree; use `npm run mcp:build` (tsup/esbuild) for the JS bundle and `npm run type-check` (inside `mcp-server/`) for full type validation
+
+See `MCP-SERVER-SPEC.md` for the full specification, architecture rationale, and deployment guide.
+
+---
+
 ## Translation Provider Architecture
 
 **IMPORTANT: NEVER implement or speak of a "fallback strategy" for translation providers.**
