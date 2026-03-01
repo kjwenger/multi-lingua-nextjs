@@ -1,12 +1,13 @@
 {
   "name": "multi-lingua",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "private": true,
   "scripts": {
     "dev": "next dev -p 3456",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "version": "node -e \"const fs=require('fs'),v=require('./package.json').version,mcp=JSON.parse(fs.readFileSync('./mcp-server/package.json','utf8'));mcp.version=v;fs.writeFileSync('./mcp-server/package.json',JSON.stringify(mcp,null,2)+'\\n');\" && git add mcp-server/package.json",
     "mcp:install": "cd mcp-server && npm install",
     "mcp:build": "cd mcp-server && npm run build",
     "mcp:start": "cd mcp-server && npm run start",
