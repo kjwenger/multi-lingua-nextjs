@@ -1,5 +1,32 @@
 # Multi-Lingua Translation App
 
+<!-- CI/CD & release -->
+[![CI](https://img.shields.io/github/actions/workflow/status/kjwenger/multi-lingua-nextjs/ci.yml?branch=main&label=CI&logo=github&logoColor=white)](https://github.com/kjwenger/multi-lingua-nextjs/actions/workflows/ci.yml)
+[![Docker Build](https://img.shields.io/github/actions/workflow/status/kjwenger/multi-lingua-nextjs/docker.yml?branch=main&label=Docker%20Build&logo=docker&logoColor=white)](https://github.com/kjwenger/multi-lingua-nextjs/actions/workflows/docker.yml)
+[![Version](https://img.shields.io/github/package-json/v/kjwenger/multi-lingua-nextjs?logo=github&logoColor=white)](https://github.com/kjwenger/multi-lingua-nextjs/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Last Commit](https://img.shields.io/github/last-commit/kjwenger/multi-lingua-nextjs)](https://github.com/kjwenger/multi-lingua-nextjs/commits/main)
+
+<!-- Tech stack -->
+[![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js&logoColor=white)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-3-38BDF8?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![Node.js](https://img.shields.io/badge/Node.js-%E2%89%A518-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![SQLite](https://img.shields.io/badge/SQLite-3-003B57?logo=sqlite&logoColor=white)](https://www.sqlite.org/)
+
+<!-- Capabilities -->
+[![Docker](https://img.shields.io/badge/Docker-amd64%20%7C%20arm64-2496ED?logo=docker&logoColor=white)](https://github.com/kjwenger/multi-lingua-nextjs/actions/workflows/docker.yml)
+[![PWA](https://img.shields.io/badge/PWA-enabled-5A0FC8?logo=pwa)](https://web.dev/progressive-web-apps/)
+[![MCP Server](https://img.shields.io/badge/MCP-Server-7C3AED)](https://modelcontextprotocol.io/)
+
+<!-- GitHub -->
+[![GitHub Stars](https://img.shields.io/github/stars/kjwenger/multi-lingua-nextjs?style=social)](https://github.com/kjwenger/multi-lingua-nextjs/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/kjwenger/multi-lingua-nextjs?style=social)](https://github.com/kjwenger/multi-lingua-nextjs/network)
+[![GitHub Issues](https://img.shields.io/github/issues/kjwenger/multi-lingua-nextjs)](https://github.com/kjwenger/multi-lingua-nextjs/issues)
+[![Code Size](https://img.shields.io/github/languages/code-size/kjwenger/multi-lingua-nextjs)](https://github.com/kjwenger/multi-lingua-nextjs)
+[![Top Language](https://img.shields.io/github/languages/top/kjwenger/multi-lingua-nextjs)](https://github.com/kjwenger/multi-lingua-nextjs)
+
 A modern Next.js application that provides real-time translation services using LibreTranslate. The app features a table-based interface where users can input English text and receive translations in French, Italian, and Spanish with multiple translation proposals.
 
 ## Table of Contents
