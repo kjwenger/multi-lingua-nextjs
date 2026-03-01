@@ -3002,7 +3002,7 @@ docker compose up -d</code></pre>
         <p className="mb-2"><strong>Solutions:</strong></p>
         <ul className="list-disc pl-6 space-y-1 mb-0">
           <li>Wait for initial model download to complete</li>
-          <li>Check download progress: <code>docker compose logs -f libretranslate | grep -i "download"</code></li>
+          <li>Check download progress: <code>docker compose logs -f libretranslate | grep -i &quot;download&quot;</code></li>
           <li>First translation after startup may take longer (model loading)</li>
           <li>Subsequent translations should be faster</li>
         </ul>
