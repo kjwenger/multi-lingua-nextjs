@@ -150,13 +150,13 @@ The app uses standard **nodemailer** with SMTP to send OTP verification codes. A
 
 ### Free SMTP Providers
 
-| Provider | Free Tier | SMTP Host | Port | Notes |
-|---|---|---|---|---|
-| **Gmail** (App Password) | 500/day | `smtp.gmail.com` | 587 | Easiest setup, requires 2FA + App Password |
-| **Outlook/Hotmail** | 300/day | `smtp-mail.outlook.com` | 587 | Microsoft account required |
-| **Brevo** (ex-Sendinblue) | 300/day | `smtp-relay.brevo.com` | 587 | Dedicated transactional email service |
-| **Mailjet** | 200/day | `in-v3.mailjet.com` | 587 | API key as user, secret key as password |
-| **Zoho Mail** (free plan) | 50/day | `smtp.zoho.com` | 587 | Free plan limited to 5 users |
+| Provider                  | Free Tier | SMTP Host               | Port | Notes                                      |
+|---------------------------|-----------|-------------------------|------|--------------------------------------------|
+| **Gmail** (App Password)  | 500/day   | `smtp.gmail.com`        | 587  | Easiest setup, requires 2FA + App Password |
+| **Outlook/Hotmail**       | 300/day   | `smtp-mail.outlook.com` | 587  | Microsoft account required                 |
+| **Brevo** (ex-Sendinblue) | 300/day   | `smtp-relay.brevo.com`  | 587  | Dedicated transactional email service      |
+| **Mailjet**               | 200/day   | `in-v3.mailjet.com`     | 587  | API key as user, secret key as password    |
+| **Zoho Mail** (free plan) | 50/day    | `smtp.zoho.com`         | 587  | Free plan limited to 5 users               |
 
 For OTP codes on a personal app, any of these is more than enough.
 
@@ -221,28 +221,28 @@ This avoids hardcoding secrets in files committed to the repository.
 ## Environment Variables Reference
 
 ### Required (All Deployments)
-| Variable | Description | Default | Example |
-|----------|-------------|---------|---------|
-| `DEV_MODE` | Enable dev mode (logs codes to console) | `true` | `true` or `false` |
-| `JWT_SECRET` | Secret key for JWT tokens | `change-this...` | Long random string |
-| `JWT_EXPIRY` | Token expiration time | `24h` | `24h`, `7d`, `30d` |
-| `APP_URL` | Application URL | `http://localhost:3456` | `https://multi-lingua.com` |
+| Variable     | Description                             | Default                 | Example                    |
+|--------------|-----------------------------------------|-------------------------|----------------------------|
+| `DEV_MODE`   | Enable dev mode (logs codes to console) | `true`                  | `true` or `false`          |
+| `JWT_SECRET` | Secret key for JWT tokens               | `change-this...`        | Long random string         |
+| `JWT_EXPIRY` | Token expiration time                   | `24h`                   | `24h`, `7d`, `30d`         |
+| `APP_URL`    | Application URL                         | `http://localhost:3456` | `https://multi-lingua.com` |
 
 ### Required (Production Only - DEV_MODE=false)
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `SMTP_HOST` | SMTP server hostname | `smtp.gmail.com` |
-| `SMTP_PORT` | SMTP port | `587` |
-| `SMTP_SECURE` | Use implicit TLS (true for port 465, false for port 587/STARTTLS) | `false` |
-| `SMTP_USER` | SMTP username | `noreply@domain.com` |
-| `SMTP_PASSWORD` | SMTP password/app password | `your-app-password` |
+| Variable        | Description                                                       | Example              |
+|-----------------|-------------------------------------------------------------------|----------------------|
+| `SMTP_HOST`     | SMTP server hostname                                              | `smtp.gmail.com`     |
+| `SMTP_PORT`     | SMTP port                                                         | `587`                |
+| `SMTP_SECURE`   | Use implicit TLS (true for port 465, false for port 587/STARTTLS) | `false`              |
+| `SMTP_USER`     | SMTP username                                                     | `noreply@domain.com` |
+| `SMTP_PASSWORD` | SMTP password/app password                                        | `your-app-password`  |
 
 ### Optional
-| Variable | Description | Default | Example |
-|----------|-------------|---------|---------|
-| `SESSION_TIMEOUT_MINUTES` | Session expiration | `1440` (24h) | `43200` (30d) |
-| `CODE_EXPIRY_MINUTES` | Verification code lifetime | `10` | `15` |
-| `MAX_CODE_ATTEMPTS` | Max code verification attempts | `3` | `5` |
+| Variable                  | Description                    | Default      | Example       |
+|---------------------------|--------------------------------|--------------|---------------|
+| `SESSION_TIMEOUT_MINUTES` | Session expiration             | `1440` (24h) | `43200` (30d) |
+| `CODE_EXPIRY_MINUTES`     | Verification code lifetime     | `10`         | `15`          |
+| `MAX_CODE_ATTEMPTS`       | Max code verification attempts | `3`          | `5`           |
 
 ## Docker Compose Files Explained
 

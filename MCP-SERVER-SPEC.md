@@ -396,13 +396,13 @@ Appendix in this file (see section below).
 
 ### Environment Variables
 
-| Variable | Default | Description |
-|---|---|---|
-| `MULTI_LINGUA_URL` | `http://localhost:3456` | Base URL of the multi-lingua instance to connect to |
-| `MULTI_LINGUA_TOKEN` | _(from config file)_ | JWT session token. Takes precedence over the config file. |
-| `MCP_TRANSPORT` | `stdio` | Transport mode: `stdio` for Claude Desktop, `http` for remote/embedded use |
-| `MCP_PORT` | `3457` | Port for the HTTP transport (only used when `MCP_TRANSPORT=http`) |
-| `MCP_CONFIG_FILE` | `~/.multi-lingua-mcp.json` | Path to the persistent token config file |
+| Variable             | Default                    | Description                                                                |
+|----------------------|----------------------------|----------------------------------------------------------------------------|
+| `MULTI_LINGUA_URL`   | `http://localhost:3456`    | Base URL of the multi-lingua instance to connect to                        |
+| `MULTI_LINGUA_TOKEN` | _(from config file)_       | JWT session token. Takes precedence over the config file.                  |
+| `MCP_TRANSPORT`      | `stdio`                    | Transport mode: `stdio` for Claude Desktop, `http` for remote/embedded use |
+| `MCP_PORT`           | `3457`                     | Port for the HTTP transport (only used when `MCP_TRANSPORT=http`)          |
+| `MCP_CONFIG_FILE`    | `~/.multi-lingua-mcp.json` | Path to the persistent token config file                                   |
 
 ### Claude Desktop Configuration (local stdio)
 

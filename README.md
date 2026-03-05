@@ -57,6 +57,7 @@ A modern Next.js application that provides real-time translation services using 
   - [Translations Table](#translations-table)
   - [User Management Tables](#user-management-tables)
 - [Technologies Used](#technologies-used)
+  - [Why Next.js?](#why-nextjs)
 - [Configuration](#configuration)
   - [Environment Variables](#environment-variables)
   - [LibreTranslate Connection](#libretranslate-connection)
@@ -364,6 +365,12 @@ CREATE TABLE user_activity_log (
 - **JWT**: JSON Web Tokens for authentication
 - **Nodemailer**: Email sending for verification codes
 - **LibreTranslate**: Open-source translation API
+
+### Why Next.js?
+
+Next.js was chosen as the framework for this project for its hybrid rendering capabilities (SSR, SSG, ISR), built-in API routes that eliminate the need for a separate backend server, React Server Components for zero-cost server-side data fetching, and its strong developer experience with file-based routing and automatic optimizations.
+
+For a detailed breakdown of Next.js's core features, its ecosystem, and how it compares to alternatives and competitors, see [NEXTJS.md](./NEXTJS.md).
 
 ## Configuration
 
