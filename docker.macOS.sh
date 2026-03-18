@@ -31,24 +31,22 @@ echo "==> multi-lingua release ${VERSION}"
 echo ""
 echo "==> Checking builder '${BUILDER}'..."
 
+if ! colima status 2>/dev/null | grep -q "running"; then
+  echo "    Colima is not running — starting with 6 GiB RAM..."
+  colima start --memory 6
+fi
+
 if ! DOCKER_HOST="${COLIMA_SOCKET}" docker-buildx ls 2>/dev/null | grep -q "^${BUILDER}"; then
-  echo "ERROR: Builder '${BUILDER}' not found. Create it with:"
-  echo "  DOCKER_HOST=${COLIMA_SOCKET} docker-buildx create --name ${BUILDER} \\"
-  echo "    --driver docker-container --platform ${PLATFORMS} --use"
-  exit 1
+  echo "    Builder '${BUILDER}' not found — creating it..."
+  DOCKER_HOST="${COLIMA_SOCKET}" docker-buildx create \
+    --name "${BUILDER}" \
+    --driver docker-container \
+    --platform "${PLATFORMS}" \
+    --use || true  # ignore "existing instance" errors; bootstrap below will handle it
 fi
 
-BUILDER_STATE=$(
-  DOCKER_HOST="${COLIMA_SOCKET}" docker-buildx ls 2>/dev/null \
-    | awk "/^${BUILDER}/{found=1} found && /running/{print \"running\"; exit} found && /stopped|error/{print \"stopped\"; exit}"
-)
-
-if [[ "${BUILDER_STATE}" != "running" ]]; then
-  echo "ERROR: Builder '${BUILDER}' is not running."
-  echo "Colima may need restarting:"
-  echo "  colima stop --force && colima start --memory 6"
-  exit 1
-fi
+echo "    Bootstrapping builder '${BUILDER}'..."
+DOCKER_HOST="${COLIMA_SOCKET}" docker-buildx inspect --bootstrap "${BUILDER}"
 
 echo "    OK — builder '${BUILDER}' is running."
 
