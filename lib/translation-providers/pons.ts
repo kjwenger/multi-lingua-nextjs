@@ -39,9 +39,21 @@ interface PonsHit {
   roms: PonsRom[];
 }
 
-interface PonsResponse {
+interface PonsLangEntry {
   lang: string;
   hits: PonsHit[];
+}
+
+// Some dictionaries (deen) return [{lang, hits}] directly;
+// others (enfr, enes, enit) wrap entries in a content array:
+// [{source, type, label, content: [{lang, hits}]}]
+interface PonsResponse {
+  lang?: string;
+  hits?: PonsHit[];
+  source?: number;
+  type?: string;
+  label?: string;
+  content?: PonsLangEntry[];
 }
 
 export class PonsProvider implements TranslationProvider {
@@ -96,34 +108,64 @@ export class PonsProvider implements TranslationProvider {
 
       // 204 means no results found
       if (response.status === 204 || !response.data || response.data.length === 0) {
-        providerLogger.debug(`PONS: No results found for "${text}"`);
+        providerLogger.debug(`PONS: No results for "${text}" (${source} -> ${target}, dict=${langPair}) — HTTP ${response.status}`);
         return { translatedText: '', alternatives: [] };
       }
 
-      // Extract translations from the response
+      providerLogger.debug(`PONS raw response (${langPair}, in=${source}): ${JSON.stringify(response.data).slice(0, 500)}`);
+
+      // Extract translations from the response.
+      // PONS uses two different response shapes:
+      //   deen:            [{lang, hits:[...]}]
+      //   enfr/enes/enit:  [{source, label, content:[{lang, hits:[...]}]}]
       const translations: string[] = [];
 
-      for (const result of response.data) {
-        if (result.hits) {
-          for (const hit of result.hits) {
-            if (hit.roms) {
-              for (const rom of hit.roms) {
-                if (rom.arabs) {
-                  for (const arab of rom.arabs) {
-                    if (arab.translations) {
-                      for (const trans of arab.translations) {
-                        // Extract the target translation, strip HTML
-                        const targetText = this.stripHtml(trans.target);
-                        if (targetText && !translations.includes(targetText)) {
-                          translations.push(targetText);
-                        }
-                      }
-                    }
+      const processRoms = (roms: PonsRom[]) => {
+        for (const rom of roms) {
+          if (rom.arabs) {
+            for (const arab of rom.arabs) {
+              if (arab.translations) {
+                for (const trans of arab.translations) {
+                  const targetText = this.stripHtml(trans.target);
+                  if (targetText && !translations.includes(targetText)) {
+                    translations.push(targetText);
                   }
                 }
               }
             }
           }
+        }
+      };
+
+      const processLangEntries = (entries: PonsLangEntry[]) => {
+        for (const entry of entries) {
+          // Translations TO the target language live in the source-language side
+          // (e.g. lang:"en" entries in deen/enfr/enes/enit all have the target-lang
+          // word in trans.target). The reverse side (lang === target) has target→source
+          // translations which we don't want.
+          if (entry.lang === source && entry.hits) {
+            for (const hit of entry.hits) {
+              // Handle normal entries (roms directly on hit)
+              if (hit.roms) {
+                processRoms(hit.roms);
+              }
+              // Handle entry_with_secondary_entries (roms inside primary_entry)
+              const hitAny = hit as any;
+              if (hitAny.primary_entry?.roms) {
+                processRoms(hitAny.primary_entry.roms);
+              }
+            }
+          }
+        }
+      };
+
+      for (const result of response.data) {
+        if (result.content) {
+          // Wrapped format: enfr, enes, enit
+          processLangEntries(result.content);
+        } else if (result.hits) {
+          // Flat format: deen
+          processLangEntries([result as PonsLangEntry]);
         }
       }
 

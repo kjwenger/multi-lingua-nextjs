@@ -296,15 +296,19 @@ export class TranslationService {
     if (sourceLanguage !== 'it') targets.push({ key: 'italian', code: 'it' });
     if (sourceLanguage !== 'es') targets.push({ key: 'spanish', code: 'es' });
 
-    const translations = await Promise.all(
+    const settled = await Promise.allSettled(
       targets.map(async (target) => {
         const result = await this.translate(text, sourceLanguage, target.code);
         return { key: target.key, result };
       })
     );
 
-    translations.forEach(({ key, result }) => {
-      results[key] = result;
+    settled.forEach((outcome) => {
+      if (outcome.status === 'fulfilled') {
+        results[outcome.value.key] = outcome.value.result;
+      } else {
+        providerLogger.warn(`Translation failed for a target language`, outcome.reason?.message);
+      }
     });
 
     // Source-language proposals (e.g. Tatoeba example sentences).
