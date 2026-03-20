@@ -7,17 +7,18 @@
 #   ./scripts/test-providers.sh pons deepl   # run specific providers only
 #
 # Environment variables:
-#   PONS_API_SECRET          — PONS Dictionary
-#   DEEPL_API_KEY            — DeepL
-#   GOOGLE_API_KEY           — Google Translate
-#   AZURE_API_KEY            — Azure Translator (also needs AZURE_REGION)
-#   AZURE_REGION             — Azure Translator region (default: global)
-#   LIBRETRANSLATE_URL       — LibreTranslate instance URL
-#   LIBRETRANSLATE_API_KEY   — LibreTranslate API key (optional)
-#   MYMEMORY_EMAIL           — MyMemory (optional, increases quota)
-#   MERRIAM_WEBSTER_API_KEY  — Merriam-Webster Dictionary
-#   OXFORD_APP_ID            — Oxford Dictionary
-#   OXFORD_APP_KEY           — Oxford Dictionary
+#   PONS_API_SECRET                    — PONS Dictionary
+#   DEEPL_API_KEY                      — DeepL
+#   GOOGLE_CLOUD_TRANSLATION_API_KEY   — Google Translate API key
+#   GOOGLE_CLOUD_TRANSLATION_API_NAME  — Google Cloud project / app name
+#   AZURE_API_KEY                      — Azure Translator (also needs AZURE_REGION)
+#   AZURE_REGION                       — Azure Translator region (default: global)
+#   LIBRETRANSLATE_URL                 — LibreTranslate instance URL
+#   LIBRETRANSLATE_API_KEY             — LibreTranslate API key (optional)
+#   MYMEMORY_EMAIL                     — MyMemory (optional, increases quota)
+#   MERRIAM_WEBSTER_API_KEY            — Merriam-Webster Dictionary
+#   OXFORD_APP_ID                      — Oxford Dictionary
+#   OXFORD_APP_KEY                     — Oxford Dictionary
 
 set -euo pipefail
 
@@ -78,7 +79,9 @@ for provider in "${providers[@]}"; do
     deepl)
       run_test "DeepL" "$TEST_DIR/deepl.test.ts" DEEPL_API_KEY ;;
     google)
-      run_test "Google Translate" "$TEST_DIR/google.test.ts" GOOGLE_API_KEY ;;
+      # Map GOOGLE_CLOUD_TRANSLATION_API_KEY → GOOGLE_API_KEY for the test
+      export GOOGLE_API_KEY="${GOOGLE_CLOUD_TRANSLATION_API_KEY:-}"
+      run_test "Google Translate" "$TEST_DIR/google.test.ts" GOOGLE_CLOUD_TRANSLATION_API_KEY GOOGLE_CLOUD_TRANSLATION_API_NAME ;;
     azure)
       run_test "Azure Translator" "$TEST_DIR/azure.test.ts" AZURE_API_KEY AZURE_REGION ;;
     libretranslate)
