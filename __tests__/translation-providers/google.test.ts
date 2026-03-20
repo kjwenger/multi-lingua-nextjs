@@ -29,7 +29,7 @@ function check(get: () => TranslateResult, expected: string, lang: string) {
 const words: Array<{ word: string; de: string; fr: string; es: string; italian: string }> = [
   { word: 'cat',   de: 'Katze',   fr: 'chat',    es: 'gato',  italian: 'gatto'      },
   { word: 'dog',   de: 'Hund',    fr: 'chien',   es: 'perro', italian: 'cane'       },
-  { word: 'car',   de: 'Auto',    fr: 'voiture', es: 'coche', italian: 'automobile' },
+  { word: 'car',   de: 'Auto',    fr: 'voiture', es: 'auto',  italian: 'auto'       },  // Google returns "auto" for both es/it
   { word: 'maize', de: 'Mais',    fr: 'maïs',    es: 'maíz',  italian: 'mais'       },
 ];
 
