@@ -64,7 +64,7 @@ run_test() {
 cd "$REPO_DIR"
 
 # Default URLs / keys for known self-hosted services
-: "${LIBRETRANSLATE_URL:=https://libretranslate.gertrun.synology.me}"
+export LIBRETRANSLATE_URL="${LIBRETRANSLATE_URL:-https://libretranslate.gertrun.synology.me}"
 
 # Determine which providers to run (all by default, or subset from args)
 providers=("${@:-pons deepl google azure libretranslate mymemory merriam-webster oxford free-dictionary tatoeba}")
