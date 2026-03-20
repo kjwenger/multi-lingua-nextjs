@@ -10,7 +10,7 @@
  *   npm test
  */
 
-import { TatoebaProvider } from './tatoeba';
+import { TatoebaProvider } from '../../lib/translation-providers/tatoeba';
 
 const provider = new TatoebaProvider();
 

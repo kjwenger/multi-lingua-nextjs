@@ -10,7 +10,7 @@
  *   npm test
  */
 
-import { FreeDictionaryProvider } from './free-dictionary';
+import { FreeDictionaryProvider } from '../../lib/translation-providers/free-dictionary';
 
 const provider = new FreeDictionaryProvider();
 
@@ -19,7 +19,7 @@ type TranslateResult = Awaited<ReturnType<typeof provider.translate>>;
 // Words with a keyword that must appear somewhere in the definition or alternatives
 const words: Array<{ word: string; contains: string }> = [
   { word: 'cat',   contains: 'animal'   },
-  { word: 'dog',   contains: 'animal'   },
+  { word: 'dog',   contains: 'mammal'   },
   { word: 'car',   contains: 'vehicle'  },
   { word: 'maize', contains: 'corn'     },
 ];

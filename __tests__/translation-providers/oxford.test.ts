@@ -10,7 +10,7 @@
  *   OXFORD_APP_ID=<id> OXFORD_APP_KEY=<key> npm test
  */
 
-import { OxfordProvider } from './oxford';
+import { OxfordProvider } from '../../lib/translation-providers/oxford';
 
 const appId = process.env.OXFORD_APP_ID;
 const appKey = process.env.OXFORD_APP_KEY;

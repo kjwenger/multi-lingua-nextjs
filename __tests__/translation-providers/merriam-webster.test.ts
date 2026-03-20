@@ -10,7 +10,7 @@
  *   MERRIAM_WEBSTER_API_KEY=<key> npm test
  */
 
-import { MerriamWebsterProvider } from './merriam-webster';
+import { MerriamWebsterProvider } from '../../lib/translation-providers/merriam-webster';
 
 const apiKey = process.env.MERRIAM_WEBSTER_API_KEY;
 
