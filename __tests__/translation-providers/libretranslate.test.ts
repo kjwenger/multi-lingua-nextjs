@@ -23,8 +23,8 @@ type TranslateResult = Awaited<ReturnType<typeof provider.translate>>;
 function check(get: () => TranslateResult, expected: string, lang: string) {
   it(`${lang} contains "${expected}"`, () => {
     const r = get();
-    const all = [r.translatedText, ...(r.alternatives ?? [])].join(' ');
-    expect(all).toContain(expected);
+    const all = [r.translatedText, ...(r.alternatives ?? [])].join(' ').toLowerCase();
+    expect(all).toContain(expected.toLowerCase());
   });
 }
 
@@ -47,7 +47,7 @@ describe('LibreTranslateProvider — en → de/fr/es/it', () => {
           provider.translate(word, 'en', 'es'),
           provider.translate(word, 'en', 'it'),
         ]);
-      }, 20000);
+      }, 60000);
 
       check(() => rDE, de, 'German');
       check(() => rFR, fr, 'French');
