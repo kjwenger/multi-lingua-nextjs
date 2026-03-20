@@ -53,7 +53,7 @@ run_test() {
   fi
 
   echo -e "\n${GREEN}RUN${RESET}   $name"
-  if npx jest --testPathPattern="$file" --no-coverage 2>&1; then
+  if npx jest --testPathPatterns="$file" --no-coverage 2>&1; then
     passed+=("$name")
   else
     failed+=("$name")
