@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { logger } from '@/lib/logger';
+import { apiPath } from '@/lib/api-path';
 
 interface User {
   id: number;
@@ -33,7 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUser = async () => {
     try {
-      const response = await fetch('/api/auth/me');
+      const response = await fetch(apiPath('/api/auth/me'));
       
       if (response.ok) {
         const data = await response.json();
@@ -59,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      await fetch(apiPath('/api/auth/logout'), { method: 'POST' });
       setUser(null);
       router.push('/login');
       router.refresh();

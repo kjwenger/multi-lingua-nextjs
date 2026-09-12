@@ -1,0 +1,50 @@
+# Compose override for this NAS (JoNAS, aarch64/Pi hardware) — merged
+# automatically via COMPOSE_FILE in .env (gitignored, untracked). See
+# docker-compose.Synology.yaml for the other NAS's equivalent override.
+#
+# The tracked docker-compose.yml tags images for registry.gertrun.synology.me,
+# which is a different host and isn't reachable/configured from this box.
+# This override redirects the same build to this NAS's own local registry
+# (the `registry:2` container already running here, on localhost:5000)
+# instead.
+#
+# It also joins multi-lingua + libretranslate to the `edge` network (owned
+# by the JoNAS core stack) so Caddy can reverse-proxy them by container
+# name, and bakes NEXT_BASE_PATH=/multi-lingua into this build since it's
+# fronted publicly at https://pornbach.ddns.net/multi-lingua/ — the
+# tracked Dockerfile/next.config.js default to root-mounted (empty
+# basePath) for every other deployment.
+networks:
+  edge:
+    external: true
+
+services:
+  libretranslate:
+    networks:
+      - multi-lingua-network
+      - edge
+    environment:
+      # Native LibreTranslate feature (--url-prefix / LT_URL_PREFIX,
+      # undocumented in its README but present in --help) — lets the
+      # full web UI work under a subpath, not just the API. Since this
+      # changes what the app expects internally, Caddy's block for it
+      # needs `handle` (prefix reaches the app intact), same pattern as
+      # multi-lingua's own basePath above, not `handle_path`.
+      - LT_URL_PREFIX=/libre-translate
+
+  multi-lingua:
+    image: localhost:5000/multi-lingua:${VERSION:-dev}
+    build:
+      args:
+        NEXT_BASE_PATH: /multi-lingua
+        # Client-side fetch() calls don't get basePath-rewritten by
+        # Next.js automatically (only next/link, next/router,
+        # next/image do) — this is what lib/api-path.ts reads to fix
+        # that. See app/register/page.tsx and friends (2026-09-12).
+        NEXT_PUBLIC_BASE_PATH: /multi-lingua
+    networks:
+      - multi-lingua-network
+      - edge
+
+  multi-lingua-mcp:
+    image: localhost:5000/multi-lingua-mcp:${VERSION:-dev}

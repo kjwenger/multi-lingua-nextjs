@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ThemeToggle } from './ThemeToggle';
 import { useState, useEffect } from 'react';
 import { APP_VERSION } from '../lib/version';
+import { apiPath } from '../lib/api-path';
 
 const PROVIDER_TYPES = [
   { type: 'libretranslate', name: 'LibreTranslate', needsUrl: true, needsApiKey: false, freeInfo: 'Self-hosted or public' },
@@ -41,7 +42,7 @@ export function SettingsContent() {
 
   const fetchProviders = async () => {
     try {
-      const response = await fetch('/api/providers');
+      const response = await fetch(apiPath('/api/providers'));
       const data = await response.json();
       setProviders(data.providers || []);
       
@@ -82,7 +83,7 @@ export function SettingsContent() {
         appId: config.app_id
       };
       
-      await fetch('/api/providers', {
+      await fetch(apiPath('/api/providers'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

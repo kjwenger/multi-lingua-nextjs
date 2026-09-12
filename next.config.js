@@ -14,6 +14,11 @@ const withPWA = require('@ducanh2912/next-pwa').default({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  // Set at build time only when this build is deployed behind a reverse
+  // proxy under a URL prefix (e.g. https://host/multi-lingua/...).
+  // Empty by default so direct-port / root-mounted deployments (the
+  // documented default) are unaffected.
+  basePath: process.env.NEXT_BASE_PATH || '',
   eslint: {
     // Warning: This allows production builds to successfully complete even if
     // your project has ESLint errors.

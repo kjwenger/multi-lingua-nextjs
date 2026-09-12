@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { apiPath } from '@/lib/api-path';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -189,7 +190,7 @@ export function ImportDialog({ onClose, onComplete }: ImportDialogProps) {
     try {
       const fd = new FormData();
       fd.append('file', file);
-      const res = await fetch('/api/import?action=analyze', {
+      const res = await fetch(apiPath('/api/import?action=analyze'), {
         method: 'POST',
         credentials: 'include',
         body: fd,
@@ -244,7 +245,7 @@ export function ImportDialog({ onClose, onComplete }: ImportDialogProps) {
         })
         .filter(Boolean);
 
-      const res = await fetch('/api/import?action=execute', {
+      const res = await fetch(apiPath('/api/import?action=execute'), {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

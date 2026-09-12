@@ -6,6 +6,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { SettingsButton } from '@/components/SettingsButton';
 import { ApiDocsButton } from '@/components/ApiDocsButton';
 import { HelpButton } from '@/components/HelpButton';
+import { apiPath } from '@/lib/api-path';
 import { UserManagementButton } from '@/components/UserManagementButton';
 import { LogoutButton } from '@/components/LogoutButton';
 import { ProviderSelector } from '@/components/ProviderSelector';
@@ -112,7 +113,7 @@ function TranslationsContent() {
   }, [user, activeCategory]);
 
   const fetchCategories = async () => {
-    const res = await fetch('/api/categories', { credentials: 'include' });
+    const res = await fetch(apiPath('/api/categories'), { credentials: 'include' });
     if (res.ok) setCategories(await res.json());
   };
 
@@ -163,7 +164,7 @@ function TranslationsContent() {
   const translateText = async (text: string, sourceLanguage?: 'en' | 'de' | 'fr' | 'it' | 'es'): Promise<TranslationResponse | null> => {
     try {
       logger.info(`Translating text from ${sourceLanguage || 'en'}`, { text });
-      const response = await fetch('/api/translate', {
+      const response = await fetch(apiPath('/api/translate'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -225,7 +226,7 @@ function TranslationsContent() {
         }
 
         logger.debug('Saving updated translation to database', { id, updatedTranslation });
-        await fetch('/api/translations', {
+        await fetch(apiPath('/api/translations'), {
           method: 'PUT',
           credentials: 'include',
           headers: {
@@ -257,7 +258,7 @@ function TranslationsContent() {
     ));
 
     // Update the database with just the English text
-    await fetch('/api/translations', {
+    await fetch(apiPath('/api/translations'), {
       method: 'PUT',
       credentials: 'include',
       headers: {
@@ -274,7 +275,7 @@ function TranslationsContent() {
     ));
 
     // Update database
-    await fetch('/api/translations', {
+    await fetch(apiPath('/api/translations'), {
       method: 'PUT',
       credentials: 'include',
       headers: {
@@ -313,7 +314,7 @@ function TranslationsContent() {
       const activeCategoryId = activeCategory && activeCategory !== '__uncategorized__'
         ? (categories.find(c => c.name === activeCategory)?.id ?? null)
         : null;
-      const response = await fetch('/api/translations', {
+      const response = await fetch(apiPath('/api/translations'), {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -362,7 +363,7 @@ function TranslationsContent() {
     try {
       const share = currentUserId !== null; // If it has a user_id, share it (set to null)
       logger.info(`Toggling share for row ${id}: ${share ? 'sharing' : 'unsharing'}`);
-      const response = await fetch('/api/translations', {
+      const response = await fetch(apiPath('/api/translations'), {
         method: 'PATCH',
         credentials: 'include',
         headers: {
@@ -388,7 +389,7 @@ function TranslationsContent() {
 
   const handleCategoryChange = async (translationId: number, categoryId: number | null) => {
     setOpenCategoryDropdownId(null);
-    await fetch('/api/translations', {
+    await fetch(apiPath('/api/translations'), {
       method: 'PUT',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },

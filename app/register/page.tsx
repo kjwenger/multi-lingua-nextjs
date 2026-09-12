@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { logger } from '@/lib/logger';
+import { apiPath } from '@/lib/api-path';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -30,7 +31,7 @@ export default function RegisterPage() {
     setError('');
 
     try {
-      const response = await fetch('/api/auth/register', {
+      const response = await fetch(apiPath('/api/auth/register'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, fullName, preferredLanguage }),
@@ -59,7 +60,7 @@ export default function RegisterPage() {
     setError('');
 
     try {
-      const response = await fetch('/api/auth/verify-registration', {
+      const response = await fetch(apiPath('/api/auth/verify-registration'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, code, fullName, preferredLanguage }),

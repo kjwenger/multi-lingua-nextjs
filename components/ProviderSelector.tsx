@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { apiPath } from '@/lib/api-path';
 
 const PROVIDERS = [
   { id: 'libretranslate', name: 'LibreTranslate' },
@@ -115,7 +116,7 @@ export function ProviderSelector() {
 
   const fetchProviders = async () => {
     try {
-      const response = await fetch('/api/providers');
+      const response = await fetch(apiPath('/api/providers'));
       const data = await response.json();
       setAllProviders(data.providers || []);
       
@@ -175,7 +176,7 @@ export function ProviderSelector() {
       appId: config.app_id
     };
     
-    const response = await fetch('/api/providers', {
+    const response = await fetch(apiPath('/api/providers'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)

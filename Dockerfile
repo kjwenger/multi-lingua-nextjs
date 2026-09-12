@@ -17,6 +17,15 @@ RUN npm ci
 # Rebuild the source code only when needed
 FROM base AS builder
 ARG VERSION
+# Optional URL prefix baked into the build for reverse-proxy deployments
+# (see next.config.js). Leave unset for the default root-mounted build.
+ARG NEXT_BASE_PATH=""
+# Same value, but NEXT_PUBLIC_-prefixed so Next.js inlines it into the
+# client bundle too — next.config.js's basePath only rewrites
+# next/link, next/router and next/image; it does NOT rewrite raw
+# fetch() calls, so client code needs this to build correct API URLs
+# itself. See lib/api-path.ts.
+ARG NEXT_PUBLIC_BASE_PATH=""
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -26,6 +35,8 @@ COPY . .
 # Uncomment the following line in case you want to disable telemetry during the build.
 ENV NEXT_TELEMETRY_DISABLED 1
 ENV NEXT_PUBLIC_APP_VERSION=${VERSION}
+ENV NEXT_BASE_PATH=${NEXT_BASE_PATH}
+ENV NEXT_PUBLIC_BASE_PATH=${NEXT_PUBLIC_BASE_PATH}
 
 RUN npm run build
 

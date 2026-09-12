@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { logger } from '@/lib/logger';
+import { apiPath } from '@/lib/api-path';
 
 interface User {
   id: number;
@@ -63,7 +64,7 @@ export default function UserManagementPage() {
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('/api/admin/users', {
+      const response = await fetch(apiPath('/api/admin/users'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newUser),

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { SettingsButton } from '@/components/SettingsButton';
 import { ApiDocsButton } from '@/components/ApiDocsButton';
+import { apiPath } from '@/lib/api-path';
 import { HelpButton } from '@/components/HelpButton';
 import { UserManagementButton } from '@/components/UserManagementButton';
 import { LogoutButton } from '@/components/LogoutButton';
@@ -58,7 +59,7 @@ export default function CategoriesPage() {
   const fetchCategories = async () => {
     try {
       setError(null);
-      const res = await fetch('/api/categories', { credentials: 'include' });
+      const res = await fetch(apiPath('/api/categories'), { credentials: 'include' });
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
       setCategories(await res.json());
     } catch (err) {
@@ -72,7 +73,7 @@ export default function CategoriesPage() {
     if (!newCategoryName.trim()) return;
     setAddError(null);
     try {
-      const res = await fetch('/api/categories', {
+      const res = await fetch(apiPath('/api/categories'), {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
