@@ -45,7 +45,7 @@ export default function UserManagementPage() {
       const params = new URLSearchParams();
       if (search) params.append('search', search);
       
-      const response = await fetch(`/api/admin/users?${params}`);
+      const response = await fetch(apiPath(`/api/admin/users?${params}`));
       const data = await response.json();
 
       if (response.ok) {
@@ -86,7 +86,7 @@ export default function UserManagementPage() {
 
   const handleToggleActive = async (userId: number, currentlyActive: boolean) => {
     try {
-      const response = await fetch(`/api/admin/users/${userId}`, {
+      const response = await fetch(apiPath(`/api/admin/users/${userId}`), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isActive: !currentlyActive }),
@@ -107,7 +107,7 @@ export default function UserManagementPage() {
   const handleToggleRole = async (userId: number, currentRole: string) => {
     const newRole = currentRole === 'admin' ? 'user' : 'admin';
     try {
-      const response = await fetch(`/api/admin/users/${userId}`, {
+      const response = await fetch(apiPath(`/api/admin/users/${userId}`), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ role: newRole }),
@@ -129,7 +129,7 @@ export default function UserManagementPage() {
     if (!confirm('Are you sure you want to delete this user?')) return;
 
     try {
-      const response = await fetch(`/api/admin/users/${userId}`, {
+      const response = await fetch(apiPath(`/api/admin/users/${userId}`), {
         method: 'DELETE',
       });
 

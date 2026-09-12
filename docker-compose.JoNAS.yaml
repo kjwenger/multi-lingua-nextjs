@@ -42,6 +42,17 @@ services:
         # next/image do) — this is what lib/api-path.ts reads to fix
         # that. See app/register/page.tsx and friends (2026-09-12).
         NEXT_PUBLIC_BASE_PATH: /multi-lingua
+    environment:
+      # Real email delivery (2026-09-12) — overrides the base file's
+      # hardcoded DEV_MODE=true. Values (including the Gmail app
+      # password) live in .env, gitignored — this file is tracked in
+      # git, so nothing secret goes here directly, only substitutions.
+      - DEV_MODE=${DEV_MODE:-true}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_SECURE=${SMTP_SECURE}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
     networks:
       - multi-lingua-network
       - edge

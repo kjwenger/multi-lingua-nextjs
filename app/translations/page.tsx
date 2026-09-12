@@ -124,7 +124,7 @@ function TranslationsContent() {
       const categoryQuery = activeCategory !== null
         ? `?category=${encodeURIComponent(activeCategory)}`
         : '';
-      const response = await fetch(`/api/translations${categoryQuery}`, {
+      const response = await fetch(apiPath(`/api/translations${categoryQuery}`), {
         method: 'GET',
         credentials: 'include',
         headers: {
@@ -348,7 +348,7 @@ function TranslationsContent() {
   const deleteRow = async (id: number) => {
     try {
       logger.info(`Deleting row with ID ${id}`);
-      await fetch(`/api/translations?id=${id}`, {
+      await fetch(apiPath(`/api/translations?id=${id}`), {
         method: 'DELETE',
         credentials: 'include',
       });

@@ -98,7 +98,7 @@ export default function CategoriesPage() {
   const handleDeleteCategory = async (id: number) => {
     if (!confirm('Delete this category? Translations in this category will become uncategorized.')) return;
     try {
-      const res = await fetch(`/api/categories?id=${id}`, {
+      const res = await fetch(apiPath(`/api/categories?id=${id}`), {
         method: 'DELETE',
         credentials: 'include',
       });

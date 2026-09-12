@@ -89,7 +89,22 @@ export class Database {
       this.addUserIdColumn();
       this.initializeCategories();
       this.addCategoryIdColumn();
+      this.initializeSettings();
     });
+  }
+
+  private initializeSettings() {
+    // Generic key/value store — read/written directly via raw sqlite3
+    // connections elsewhere (lib/translate.ts, lib/translation-providers,
+    // app/api/providers/route.ts) rather than through this class, so it
+    // must exist before those run. Was missing entirely until 2026-09-12,
+    // which made every write to it fail with "no such table: settings".
+    this.db.run(`
+      CREATE TABLE IF NOT EXISTS settings (
+        key TEXT PRIMARY KEY,
+        value TEXT
+      )
+    `, (err: Error | null) => { if (err) console.error('Error creating settings table:', err); });
   }
 
   private addUserIdColumn() {
