@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { SettingsButton } from '@/components/SettingsButton';
@@ -571,7 +572,7 @@ function TranslationsContent() {
           {/* Breadcrumb */}
           {activeCategory !== null && (
             <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700 text-sm text-gray-600 dark:text-gray-400">
-              <a href="/categories" className="hover:text-blue-600 dark:hover:text-blue-400">← Categories</a>
+              <Link href="/categories" className="hover:text-blue-600 dark:hover:text-blue-400">← Categories</Link>
               {' / '}
               <span className="text-gray-900 dark:text-gray-100">
                 {activeCategory === '__uncategorized__' ? 'Uncategorized' : activeCategory}

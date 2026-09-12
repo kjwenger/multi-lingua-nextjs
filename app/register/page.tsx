@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { logger } from '@/lib/logger';
@@ -93,11 +94,11 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <a href="/landing" className="block text-center mb-4">
+          <Link href="/landing" className="block text-center mb-4">
             <span className="text-blue-600 hover:text-blue-500 dark:text-blue-400 text-sm">
               ← Back to Home
             </span>
-          </a>
+          </Link>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
             Create your account
           </h2>
