@@ -336,13 +336,21 @@ function TranslationsContent() {
         }),
       });
       
+      if (!response.ok) {
+        // Gateway errors (e.g. 502 from the reverse proxy) have an empty or non-JSON body
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const result = await response.json();
       if (result.success) {
         logger.info('New row added successfully');
         fetchTranslations();
+      } else {
+        throw new Error(result.error || 'Server reported failure');
       }
     } catch (error) {
       logger.error('Error adding new row', error);
+      alert('Could not add a new row. The server may be busy or unreachable; please try again.');
     }
   };
 
