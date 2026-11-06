@@ -8,6 +8,11 @@ services:
     environment:
       - LT_HOST=0.0.0.0
       - LT_PORT=5000
+      # Only load the languages the app supports. Each gunicorn worker holds
+      # all loaded models in RAM, so this matters a lot on small hosts (Pi).
+      - LT_LOAD_ONLY=${LT_LOAD_ONLY:-en,de,fr,it,es}
+      # Number of gunicorn workers (default 4, ~0.5 GB each with all models).
+      - LT_THREADS=${LT_THREADS:-2}
     volumes:
       # Persist LibreTranslate data and models between container restarts
       - lt-local:/home/libretranslate/.local
