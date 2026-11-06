@@ -397,6 +397,7 @@ The app is configured to connect to LibreTranslate. You can customize the connec
 
 #### Translation
 - `LIBRETRANSLATE_URL`: Custom LibreTranslate server URL (default: auto-detected based on environment)
+- `LIBRETRANSLATE_TIMEOUT_MS`: Per-request timeout for LibreTranslate in milliseconds (default: `60000`); increase on slow hosts such as a Raspberry Pi
 
 ### LibreTranslate Connection
 
